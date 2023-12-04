@@ -4,7 +4,7 @@ import TitleHeader from "../components/navigation/title-header";
 function RegisterPage() {
 	return (
 		<div className="LoginPage" style={{ alignContent: "center" }}>
-			<TitleHeader />\
+			<TitleHeader />
 			<RegisterComponent />
 		</div>
 	);

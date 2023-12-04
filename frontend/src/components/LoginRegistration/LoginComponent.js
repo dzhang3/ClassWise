@@ -36,7 +36,7 @@ function LoginComponent() {
 						display: "flex",
 						flexDirection: "column",
 						width: "100%",
-						gap: "30px",
+						gap: "40px",
 						textAlign: "left",
 					}}
 				>

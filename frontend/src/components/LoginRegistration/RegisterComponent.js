@@ -1,22 +1,41 @@
-import React, { useState } from "react";
-import { useHistory } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import TextField from "@mui/material/TextField";
 
 function RegisterComponent() {
+	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [retypePassword, setRetypePassword] = useState("");
 	const [error, setError] = useState(null);
+	const [samePassword, setSamePassword] = useState(true);
 
-	async function handleSubmit(e) {
-		// e.preventDefault();
-		// try {
-		//   await login(email, password);
-		//   history.push("/");
-		// } catch (err) {
-		//   setError("Failed to log in");
-		// }
-		return;
+	useEffect(() => {
+		validatePassword();
+	}, [password, retypePassword]);
+
+	function validatePassword() {
+		if (retypePassword && password !== retypePassword) {
+			setSamePassword(false);
+		} else {
+			setSamePassword(true);
+		}
 	}
+
+	function retypePasswordChange(e) {
+		setRetypePassword(e.target.value);
+	}
+
+	function handleSubmit(e) {
+		e.preventDefault();
+		if (!samePassword) {
+			setError("Passwords do not match");
+			return;
+		}
+
+		// Continue with form submission logic
+		console.log("Form submitted");
+	}
+
 	return (
 		<div
 			className="login-component-wrapper"
@@ -28,7 +47,7 @@ function RegisterComponent() {
 			}}
 		>
 			<div className="login-component">
-				<div className="login-component-title">Login</div>
+				<div className="login-component-title">Create Account</div>
 
 				<form
 					onSubmit={handleSubmit}
@@ -41,44 +60,63 @@ function RegisterComponent() {
 					}}
 				>
 					<TextField
+						required
+						variant="standard"
+						label="Name"
+						onChange={(e) => setName(e.target.value)}
+						value={name}
+					/>
+					<TextField
+						required
 						variant="standard"
 						type="email"
 						label="Email"
 						onChange={(e) => setEmail(e.target.value)}
 						value={email}
 					/>
+					<TextField
+						required
+						variant="standard"
+						type="password"
+						label="Password"
+						onChange={(e) => setPassword(e.target.value)}
+						value={password}
+					/>
 
-					<div
-						className="login-component-password"
-						style={{
-							display: "flex",
-							flexDirection: "column",
-							justifyContent: "space-between",
-						}}
-					>
+					{samePassword && (
 						<TextField
+							required
 							variant="standard"
 							type="password"
-							label="Password"
-							onChange={(e) => setPassword(e.target.value)}
-							value={password}
+							label="Retype Password"
+							value={retypePassword}
+							onChange={(e) => retypePasswordChange(e)}
 						/>
+					)}
 
-						{/* <div className="login-component-forgot-password">
-							<a href="/forgot-password">Forgot Password?</a>
-						</div> */}
-					</div>
+					{!samePassword && (
+						<TextField
+							error
+							required
+							variant="standard"
+							type="password"
+							label="Retype Password"
+							value={retypePassword}
+							onChange={(e) => retypePasswordChange(e)}
+							helperText="Passwords do not match"
+						/>
+					)}
 
 					<button className="login-component-button" type="submit">
 						<div className=".login-component-button-text">
-							Login
+							Create Account
 						</div>
 					</button>
 
 					<div className="login-component-signup">
-						Don't have an account?{" "}
-						<a href="/register" className="register-text">
-							Create an account here.
+						Already have an account?{" "}
+						<a href="/login" className="register-text">
+							Login here.
 						</a>
 					</div>
 				</form>
