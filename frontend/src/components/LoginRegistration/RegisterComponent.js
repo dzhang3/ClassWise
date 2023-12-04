@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useRef } from "react";
 import TextField from "@mui/material/TextField";
 
 function RegisterComponent() {
@@ -8,6 +9,16 @@ function RegisterComponent() {
 	const [retypePassword, setRetypePassword] = useState("");
 	const [error, setError] = useState(null);
 	const [samePassword, setSamePassword] = useState(true);
+	const typePasswordRef = useRef(null);
+	const retypePasswordRef = useRef(null);
+
+	useEffect(() => {
+		if (samePassword) {
+			typePasswordRef.current.focus();
+		} else {
+			retypePasswordRef.current.focus();
+		}
+	}, [samePassword]);
 
 	useEffect(() => {
 		validatePassword();
@@ -91,6 +102,7 @@ function RegisterComponent() {
 							label="Retype Password"
 							value={retypePassword}
 							onChange={(e) => retypePasswordChange(e)}
+							inputRef={typePasswordRef}
 						/>
 					)}
 
@@ -104,6 +116,7 @@ function RegisterComponent() {
 							value={retypePassword}
 							onChange={(e) => retypePasswordChange(e)}
 							helperText="Passwords do not match"
+							inputRef={retypePasswordRef}
 						/>
 					)}
 
