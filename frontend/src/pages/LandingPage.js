@@ -21,7 +21,13 @@ function LandingPage() {
 			<TitleHeader />
 
 			<div style={{ textAlign: "center", marginTop: "15vh" }}>
-				<h1 style={{ fontSize: "3rem", fontWeight: "bold", color: "#0759a1" }}>
+				<h1
+					style={{
+						fontSize: "3rem",
+						fontWeight: "bold",
+						color: "#0759a1",
+					}}
+				>
 					ClassWise
 				</h1>
 			</div>
@@ -37,7 +43,7 @@ function LandingPage() {
 			</div>
 
 			<div style={{ marginTop: "20px" }}>
-				<Button variant="contained">Submit</Button>
+				<Button variant="contained">Search</Button>
 			</div>
 		</div>
 	);
