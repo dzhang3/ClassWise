@@ -13,9 +13,9 @@ function RegisterComponent() {
 	const retypePasswordRef = useRef(null);
 
 	useEffect(() => {
-		if (samePassword) {
+		if (password && samePassword) {
 			typePasswordRef.current.focus();
-		} else {
+		} else if (!samePassword) {
 			retypePasswordRef.current.focus();
 		}
 	}, [samePassword]);
