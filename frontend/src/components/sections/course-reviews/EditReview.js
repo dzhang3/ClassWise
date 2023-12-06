@@ -5,11 +5,17 @@ import Button from "@mui/material/Button";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { grey } from "@mui/material/colors";
 
-export default function EditReview() {
+export default function EditReview(props) {
 	const [rating, setRating] = useState(0);
 	const [professor, setProfessor] = useState("");
 	const [comment, setComment] = useState("");
 	const [grade, setGrade] = useState("");
+
+	const { setIsEditing } = props;
+
+	const handleClick = () => {
+		setIsEditing(false);
+	};
 
 	return (
 		<ThemeProvider
@@ -95,7 +101,11 @@ export default function EditReview() {
 						gap: "10px",
 					}}
 				>
-					<Button variant="outlined" color="grey">
+					<Button
+						variant="outlined"
+						color="grey"
+						onClick={handleClick}
+					>
 						Cancel
 					</Button>
 					<Button variant="outlined" color="error">

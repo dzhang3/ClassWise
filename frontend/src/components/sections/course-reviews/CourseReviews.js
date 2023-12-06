@@ -2,8 +2,10 @@ import Review from "./Review";
 import CreateReview from "./CreateReview";
 import EditReview from "./EditReview";
 import MyReview from "./MyReview";
+import { useState } from "react";
 
 export default function CourseReviews() {
+	const [isEditing, setIsEditing] = useState(false);
 	return (
 		<div className="course-reviews">
 			<h3>Reviews</h3>
@@ -12,9 +14,13 @@ export default function CourseReviews() {
 				<Review />
 				<Review />
 				<Review />
-				<MyReview />
+
+				{!isEditing ? (
+					<MyReview setIsEditing={setIsEditing} />
+				) : (
+					<EditReview setIsEditing={setIsEditing} />
+				)}
 			</div>
-			<EditReview />
 		</div>
 	);
 }

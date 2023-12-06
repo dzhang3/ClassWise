@@ -231,6 +231,7 @@
 }
 
 .edit-review {
+	width: 100%;
 	padding: 16px;
 	border-radius: 5px;
 	min-width: 30%;
