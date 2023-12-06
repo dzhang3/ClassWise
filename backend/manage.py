@@ -3,8 +3,9 @@
 import os
 import sys
 
-
 def main():
+    # print("Python interpreter:", sys.executable)
+    # print("PYTHONPATH:", os.environ.get('PYTHONPATH', "Not set"))
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
     try:
