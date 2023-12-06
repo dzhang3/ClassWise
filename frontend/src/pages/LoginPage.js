@@ -3,7 +3,10 @@ import TitleHeader from "../components/navigation/title-header";
 
 function LoginPage() {
 	return (
-		<div className="LoginPage" style={{ alignContent: "center" }}>
+		<div
+			className="LoginPage"
+			style={{ alignContent: "center", width: "100%" }}
+		>
 			<TitleHeader />
 			<LoginComponent />
 		</div>

@@ -13,6 +13,14 @@
 	width: 100%;
 }
 
+.LandingPage {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
 .ClassPage {
 	font-family: Inter;
 	display: flex;
@@ -194,6 +202,63 @@
 	text-align: left;
 	padding-left: 53px;
 	padding-right: 53px;
+	gap: 20px;
+}
+
+.course-reviews .reviews {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 20px;
+	width: 100%;
+}
+
+.create-review-form {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	text-align: left;
+	padding-left: 53px;
+	padding-right: 53px;
+	gap: 20px;
+}
+
+.create-review-form .create-review__half {
+	display: flex;
+	flex-direction: column;
+	width: 50%;
+	gap: 10px;
+}
+
+.edit-review {
+	padding: 16px;
+	border-radius: 5px;
+	min-width: 30%;
+	box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.review {
+	padding: 16px;
+	border-radius: 5px;
+	display: flex;
+	flex-direction: column;
+	min-width: 30%;
+	text-align: left;
+	box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.review .review-header {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+}
+
+.review-body p,
+.review-body h4 {
+	margin: 0px;
+	padding: 0px;
 }
 
 @media screen and (max-width: 900px) {
@@ -213,6 +278,13 @@
 		flex-direction: column;
 	}
 	.instructor-semester {
+		width: 100%;
+	}
+	.create-review-form {
+		flex-direction: column;
+	}
+
+	.create-review-form .create-review__half {
 		width: 100%;
 	}
 }

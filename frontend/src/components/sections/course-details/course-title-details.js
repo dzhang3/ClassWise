@@ -18,9 +18,9 @@ export default function CourseTitleDetails() {
 					justifyContent: "center",
 				}}
 			>
-				<Button variant="contained" style={{ height: "40px" }}>
+				{/* <Button variant="contained" style={{ height: "40px" }}>
 					Add to Schedule +
-				</Button>
+				</Button> */}
 			</div>
 		</section>
 	);
