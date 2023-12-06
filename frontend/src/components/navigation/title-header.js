@@ -15,24 +15,22 @@ export default function TitleHeader() {
 	};
 
 	return (
-		<section id="title-header">
-			<div className="title-header">
-				<h1
-					className="title-header-h1-white"
-					onClick={handleClasswiseClick}
-					style={{ cursor: "pointer" }}
-				>
-					ClassWise
-				</h1>
+		<div className="title-header">
+			<h1
+				className="title-header-h1-white"
+				onClick={handleClasswiseClick}
+				style={{ cursor: "pointer" }}
+			>
+				ClassWise
+			</h1>
 
-				<button
-					className="login-button"
-					onClick={handleLoginClick}
-					style={{ cursor: "pointer" }}
-				>
-					Login
-				</button>
-			</div>
-		</section>
+			<button
+				className="login-button"
+				onClick={handleLoginClick}
+				style={{ cursor: "pointer" }}
+			>
+				Login
+			</button>
+		</div>
 	);
 }
