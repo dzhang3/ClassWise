@@ -25,7 +25,7 @@ export default function TitleHeader() {
 			</h1>
 
 			<button
-				className="login-button"
+				className="universal-button"
 				onClick={handleLoginClick}
 				style={{ cursor: "pointer" }}
 			>

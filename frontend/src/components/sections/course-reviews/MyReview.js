@@ -1,4 +1,5 @@
 import Rating from "@mui/material/Rating";
+import Button from "@mui/material/Button";
 
 export default function Review() {
 	return (
@@ -73,6 +74,15 @@ export default function Review() {
 					comment comment comment comment comment comment comment
 					comment comment comment comment
 				</p>
+			</div>
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "flex-end",
+					marginTop: "10px",
+				}}
+			>
+				<Button variant="outlined">Edit</Button>
 			</div>
 		</div>
 	);

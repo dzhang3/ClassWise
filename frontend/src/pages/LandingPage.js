@@ -3,16 +3,7 @@ import SearchableDropdown from "../components/SearchableDropDown";
 import Button from "@mui/material/Button";
 
 import React, { useState } from "react";
-
-const data = [
-	{ id: 1, name: "Dog" },
-	{ id: 2, name: "Cat" },
-	{ id: 3, name: "Mouse" },
-	{ id: 4, name: "Horse" },
-	{ id: 5, name: "Cow" },
-	{ id: 6, name: "Sheep" },
-	{ id: 7, name: "Pig" },
-];
+import { courses } from "../data/course-codes.js";
 
 function LandingPage() {
 	const [value, setValue] = useState("");
@@ -32,9 +23,15 @@ function LandingPage() {
 				</h1>
 			</div>
 
-			<div style={{ display: "flex", justifyContent: "center" }}>
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "center",
+					width: "100%",
+				}}
+			>
 				<SearchableDropdown
-					options={data}
+					options={courses}
 					label="name"
 					id="id"
 					selectedVal={value}
