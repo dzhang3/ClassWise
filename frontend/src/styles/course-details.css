@@ -227,7 +227,14 @@
 	display: flex;
 	flex-direction: column;
 	width: 50%;
-	gap: 20px;
+	gap: 10px;
+}
+
+.edit-review {
+	padding: 16px;
+	border-radius: 5px;
+	min-width: 30%;
+	box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 .review {
