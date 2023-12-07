@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 #from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -7,7 +7,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 class Comment(models.Model):
     comment_text = models.CharField(max_length=200, null=True)
     comment_date = models.DateTimeField(auto_now_add=True)
-    comment_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    comment_user = models.ForeignKey("UserAccount", on_delete=models.CASCADE, null=True)
     comment_course = models.OneToOneField('Course', on_delete=models.CASCADE, null=True)
     comment_professor = models.OneToOneField('Instructor', on_delete=models.PROTECT)
     # Course and comments are one to many
@@ -35,10 +35,28 @@ class Course(models.Model):
     def __str__(self):
         return self.course_name
 
-# class User(models.Model):
-#     user_name = models.CharField(max_length=200, null=True)
-#     user_password = models.CharField(max_length=200, null=True)
-#     user_email = models.CharField(max_length=200, null=True)
-#     user_comments = ArrayField(models.CharField(max_length=100), blank=True, null=True)
-#     def __str__(self):
-#         return self.user_name
+class UserAccountManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('Users must have an email address')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save()
+        return user
+
+class UserAccount(AbstractBaseUser, PermissionsMixin):
+    email = models.EmailField(max_length=255, unique=True)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    objects = UserAccountManager()
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
+    def get_full_name(self):
+        return self.first_name
+    def get_short_name(self):
+        return self.first_name
+    def __str__(self):
+        return self.email

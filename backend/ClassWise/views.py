@@ -23,6 +23,8 @@ from .forms import CourseForm, CreateUserForm
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 def registrationPage(request):
     form = CreateUserForm()
@@ -311,13 +313,30 @@ def get_instructor_rating(name):
     # Create a ChromeOptions instance and set the user agent
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"user-agent={desired_user_agent}")
+    chrome_options.add_argument("--disable-popup-blocking")
     #chrome_options.add_argument("--headless")
     driver = webdriver.Chrome(options=chrome_options)
     # Navigate to the website
+    print("processing...")
+    # https://www.ratemyprofessors.com/school/1439
     driver.get("https://www.ratemyprofessors.com/")
-    # Find the search input field by ID and input "COMP512"
+    try:
+        print("waiting for pop-up window")
+        wait = WebDriverWait(driver, 1)
+        close_button = driver.find_element(By.CLASS_NAME, 'ReactModal__Overlay')
+        print("close button found: ", close_button)
+        close_button1 = close_button.find_element(By.CLASS_NAME, 'FullPageModal__StyledFullPageModal-sc-1tziext-1')
+        print("close button 1 found: ", close_button1)
+        close_button2 = close_button1.find_element(By.CLASS_NAME, 'Buttons__Button-sc-19xdot-1')
+        print("close button 2 found: ", close_button2)
+        close_button2.click()
+        print("close button clicked")
+    except Exception as e:
+        print(f"An exception occurred: {e}")
+        print("No pop-up window")
     search_input = driver.find_element(By.CLASS_NAME, "Search__DebouncedSearchInput-sc-10lefvq-1 fwqnjW")
     search_input.send_keys(name)
+    search_input.send_keys(Keys.RETURN)
     rating = float(driver.find_element(By.CLASS_NAME, "CardNumRating__CardNumRatingNumber-sc-17t4b9u-2 bUneqk").text)
     driver.quit()
     print("rating is", rating)
