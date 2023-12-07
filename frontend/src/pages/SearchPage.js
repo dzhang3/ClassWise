@@ -12,11 +12,13 @@ function SearchPage() {
 
 	const handleClick = () => {
 		// Find the selected course ID
-		const selectedCourseId = courses.find(
-			(course) => course.name === value
-		);
+		if (value !== "") {
+			const selectedCourseId = courses.find(
+				(course) => course.name === value
+			);
 
-		navigate("/class/" + selectedCourseId.id);
+			navigate("/class/" + selectedCourseId.id);
+		}
 	};
 
 	return (

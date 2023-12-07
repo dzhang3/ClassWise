@@ -1,8 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import AuthContext from "../../contexts/AuthContext";
 
 export default function TitleHeader() {
 	const navigate = useNavigate();
+	const { user, setUser } = useContext(AuthContext);
 
 	const handleClasswiseClick = () => {
 		// Navigate to the '/' page
@@ -11,6 +14,12 @@ export default function TitleHeader() {
 
 	const handleLoginClick = () => {
 		// Navigate to the '/login' page
+		navigate("/login");
+	};
+
+	const handleLogoutClick = () => {
+		// Navigate to the '/login' page
+		setUser("");
 		navigate("/login");
 	};
 
@@ -24,13 +33,23 @@ export default function TitleHeader() {
 				ClassWise
 			</h1>
 
-			<button
-				className="universal-button"
-				onClick={handleLoginClick}
-				style={{ cursor: "pointer" }}
-			>
-				Login
-			</button>
+			{!user ? (
+				<button
+					className="universal-button"
+					onClick={handleLoginClick}
+					style={{ cursor: "pointer" }}
+				>
+					Login
+				</button>
+			) : (
+				<button
+					className="universal-button"
+					onClick={handleLogoutClick}
+					style={{ cursor: "pointer" }}
+				>
+					Logout
+				</button>
+			)}
 		</div>
 	);
 }

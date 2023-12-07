@@ -11,6 +11,7 @@ import {
 	LoginPage,
 	RegisterPage,
 } from "./pages";
+import { AuthProvider } from "./contexts/AuthContext";
 
 // import { Provider } from "react-redux";
 // import store from "./store";
@@ -18,15 +19,16 @@ import {
 function App() {
 	return (
 		<div className="App">
-			{/* <Provider store={store}> */}
-			<Routes>
-				<Route path="/" element={<LandingPage />} />
-				<Route path="/search" element={<SearchPage />} />
-				<Route path="/class" element={<ClassPage />} />
-				<Route path="/class/:id" element={<ClassPage />} />
-				<Route path="/login" element={<LoginPage />} />
-				<Route path="/register" element={<RegisterPage />} />
-			</Routes>
+			<AuthProvider>
+				<Routes>
+					<Route path="/" element={<LandingPage />} />
+					<Route path="/search" element={<SearchPage />} />
+					<Route path="/class" element={<ClassPage />} />
+					<Route path="/class/:id" element={<ClassPage />} />
+					<Route path="/login" element={<LoginPage />} />
+					<Route path="/register" element={<RegisterPage />} />
+				</Routes>
+			</AuthProvider>
 			{/* </Provider> */}
 		</div>
 	);
