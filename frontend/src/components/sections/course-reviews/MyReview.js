@@ -1,6 +1,13 @@
 import Rating from "@mui/material/Rating";
+import Button from "@mui/material/Button";
 
-export default function Review({ name, date, rating, grade, comment }) {
+export default function Review(props) {
+	const { setIsEditing, name, date, rating, grade, comment } = props;
+
+	const handleClick = () => {
+		setIsEditing(true);
+	};
+
 	return (
 		<div className="review">
 			<div className="review-header">
@@ -69,6 +76,17 @@ export default function Review({ name, date, rating, grade, comment }) {
 			</div>
 			<div className="review-body">
 				<p>{comment}</p>
+			</div>
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "flex-end",
+					marginTop: "10px",
+				}}
+			>
+				<Button variant="outlined" onClick={handleClick}>
+					Edit
+				</Button>
 			</div>
 		</div>
 	);

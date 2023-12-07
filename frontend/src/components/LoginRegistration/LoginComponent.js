@@ -1,22 +1,30 @@
 import React, { useState } from "react";
-import { useHistory } from "react-router-dom";
 import TextField from "@mui/material/TextField";
+import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import AuthContext from "../../contexts/AuthContext";
 
 function LoginComponent() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState(null);
+	const navigate = useNavigate(); // Use useNavigate hook
+
+	const { user, setUser } = useContext(AuthContext);
 
 	async function handleSubmit(e) {
-		// e.preventDefault();
-		// try {
-		//   await login(email, password);
-		//   history.push("/");
-		// } catch (err) {
-		//   setError("Failed to log in");
-		// }
-		return;
+		e.preventDefault(); // Prevent the default form submission behavior
+
+		try {
+			// Perform your login logic here
+			// If login is successful, navigate to the desired route
+			setUser("user");
+			navigate("/search");
+		} catch (err) {
+			setError("Failed to log in");
+		}
 	}
+
 	return (
 		<div
 			className="login-component-wrapper"
@@ -42,8 +50,8 @@ function LoginComponent() {
 				>
 					<TextField
 						variant="standard"
-						type="email"
-						label="Email"
+						type="username"
+						label="Username"
 						onChange={(e) => setEmail(e.target.value)}
 						value={email}
 					/>
@@ -63,10 +71,6 @@ function LoginComponent() {
 							onChange={(e) => setPassword(e.target.value)}
 							value={password}
 						/>
-
-						{/* <div className="login-component-forgot-password">
-							<a href="/forgot-password">Forgot Password?</a>
-						</div> */}
 					</div>
 
 					<button className="login-component-button" type="submit">

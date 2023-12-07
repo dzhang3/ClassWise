@@ -29,7 +29,7 @@
 	text-align: left;
 }
 
-.login-button {
+.universal-button {
 	background-color: #2196f3;
 	color: white;
 	border: none;
@@ -41,6 +41,6 @@
 	border-radius: 3px;
 }
 
-.login-button:hover {
+.universal-button:hover {
 	background-color: #0d47a1;
 }
