@@ -3,7 +3,7 @@ import { useRef } from "react";
 import TextField from "@mui/material/TextField";
 
 function RegisterComponent() {
-	const [name, setName] = useState("");
+	const [userName, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [retypePassword, setRetypePassword] = useState("");
@@ -73,9 +73,9 @@ function RegisterComponent() {
 					<TextField
 						required
 						variant="standard"
-						label="Name"
-						onChange={(e) => setName(e.target.value)}
-						value={name}
+						label="Username"
+						onChange={(e) => setUsername(e.target.value)}
+						value={userName}
 					/>
 					<TextField
 						required

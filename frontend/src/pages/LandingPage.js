@@ -1,16 +1,20 @@
-import TitleHeader from "../components/navigation/title-header";
-import SearchableDropdown from "../components/SearchableDropDown";
-import Button from "@mui/material/Button";
-
+import TitleHeader from "../components/navigation/title-header.js";
+import { Button } from "@mui/material";
 import React, { useState } from "react";
-import { courses } from "../data/course-codes.js";
+import { useNavigate } from "react-router-dom"; // Import useHistory
 
-function LandingPage() {
+function SearchPage() {
 	const [value, setValue] = useState("");
+	const navigate = useNavigate(); // Create a navigate object
+
+	const handleLoginClick = () => {
+		// Navigate to /login when the button is clicked
+		navigate("/login");
+	};
+
 	return (
 		<div className="LandingPage">
 			<TitleHeader />
-
 			<div style={{ textAlign: "center", marginTop: "15vh" }}>
 				<h1
 					style={{
@@ -21,29 +25,15 @@ function LandingPage() {
 				>
 					ClassWise
 				</h1>
-			</div>
-
-			<div
-				style={{
-					display: "flex",
-					justifyContent: "center",
-					width: "100%",
-				}}
-			>
-				<SearchableDropdown
-					options={courses}
-					label="name"
-					id="id"
-					selectedVal={value}
-					handleChange={(val) => setValue(val)}
-				/>
-			</div>
-
+				<p> Class search made easy!</p>
+			</div>{" "}
 			<div style={{ marginTop: "20px" }}>
-				<Button variant="contained">Search</Button>
+				<Button variant="contained" onClick={handleLoginClick}>
+					Click Here to Login
+				</Button>
 			</div>
 		</div>
 	);
 }
 
-export default LandingPage;
+export default SearchPage;

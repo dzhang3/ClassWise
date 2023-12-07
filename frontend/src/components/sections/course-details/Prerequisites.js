@@ -11,7 +11,11 @@ function Prerequisites() {
 				Prerequisite(s)
 			</h4>
 			<div className="chip-container">
-				<Chip label="COMP 551" />
+				<Chip label="MATH 323" />
+				<Chip label="ECSE 205" />
+				<Chip label="MATH 133" />
+				<Chip label="MATH 222" />
+				<Chip label="COMP 202" />
 			</div>
 		</div>
 	);
