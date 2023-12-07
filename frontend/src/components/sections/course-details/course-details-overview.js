@@ -1,6 +1,6 @@
 import Prerequisites from "./Prerequisites";
 import Restrictions from "./Restrictions";
-import Sections from "./Sections";
+import Averages from "./Sections";
 import Notes from "./Notes";
 
 export default function CourseDetailsOverview() {
@@ -16,7 +16,7 @@ export default function CourseDetailsOverview() {
 					handling of large data sets. Emphasis on good methods and
 					practices for deployment of real systems.
 				</div>
-				<Sections />
+				<Averages />
 			</div>
 			<div className="class-info-half">
 				<Prerequisites />

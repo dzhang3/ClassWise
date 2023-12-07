@@ -5,11 +5,16 @@ import Button from "@mui/material/Button";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { grey } from "@mui/material/colors";
 
-export default function EditReview() {
-	const [rating, setRating] = useState(0);
-	const [professor, setProfessor] = useState("");
-	const [comment, setComment] = useState("");
-	const [grade, setGrade] = useState("");
+export default function EditReview(props) {
+	const { setIsEditing, name, date, rating, grade, comment } = props;
+	const [newRating, setRating] = useState(rating);
+	const [newProfessor, setProfessor] = useState(name);
+	const [newComment, setComment] = useState(comment);
+	const [newGrade, setGrade] = useState(grade);
+
+	const handleClick = () => {
+		setIsEditing(false);
+	};
 
 	return (
 		<ThemeProvider
@@ -43,7 +48,7 @@ export default function EditReview() {
 							</h4>
 							<Rating
 								name="simple-controlled"
-								value={rating}
+								value={newRating}
 								onChange={(event, newRating) => {
 									setRating(newRating);
 								}}
@@ -58,7 +63,7 @@ export default function EditReview() {
 							multiline
 							rows={4}
 							variant="standard"
-							value={comment}
+							value={newComment}
 							onChange={(e) => setComment(e.target.value)}
 							inputProps={{ maxLength: 350 }}
 							style={{
@@ -70,7 +75,7 @@ export default function EditReview() {
 						<TextField
 							label="Professor"
 							variant="standard"
-							value={professor}
+							value={newProfessor}
 							onChange={(e) => setProfessor(e.target.value)}
 							style={{
 								width: "100%",
@@ -79,7 +84,7 @@ export default function EditReview() {
 						<TextField
 							label="Grade"
 							variant="standard"
-							value={grade}
+							value={newGrade}
 							onChange={(e) => setGrade(e.target.value)}
 							style={{
 								width: "100%",
@@ -95,7 +100,11 @@ export default function EditReview() {
 						gap: "10px",
 					}}
 				>
-					<Button variant="outlined" color="grey">
+					<Button
+						variant="outlined"
+						color="grey"
+						onClick={handleClick}
+					>
 						Cancel
 					</Button>
 					<Button variant="outlined" color="error">
