@@ -20,7 +20,7 @@ export default function TitleHeader() {
 	const handleLogoutClick = () => {
 		// Navigate to the '/login' page
 		setUser("");
-		navigate("/");
+		navigate("/login");
 	};
 
 	return (

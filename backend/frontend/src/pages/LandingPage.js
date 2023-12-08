@@ -27,16 +27,10 @@ function SearchPage() {
 				</h1>
 				<p> Class search made easy!</p>
 			</div>{" "}
-			<div style={{ marginTop: "40px", marginBottom: "20px" }}>
+			<div style={{ marginTop: "20px" }}>
 				<Button variant="contained" onClick={handleLoginClick}>
 					Click Here to Login
 				</Button>
-			</div>
-			<div className="login-component-signup">
-				Don't have an account?{" "}
-				<a href="/register" className="register-text">
-					Create an account here.
-				</a>
 			</div>
 		</div>
 	);
