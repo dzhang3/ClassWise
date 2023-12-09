@@ -16,7 +16,7 @@ function LoginComponent() {
 		if (user) {
 			navigate("/search");
 		}
-	}, [user]);
+	}, [user, navigate]);
 
 	function handleSubmit(e) {
 		e.preventDefault();
@@ -54,8 +54,8 @@ function LoginComponent() {
 				>
 					<TextField
 						variant="standard"
-						type="username"
-						label="Username"
+						type="email"
+						label="email"
 						onChange={(e) => setEmail(e.target.value)}
 						value={email}
 					/>

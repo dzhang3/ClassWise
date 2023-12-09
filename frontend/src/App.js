@@ -3,7 +3,7 @@ import "./styles/course-details.css";
 import "./styles/header.css";
 import "./styles/searchbar.css";
 import "./styles/components.css";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import {
 	LandingPage,
 	SearchPage,

@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
 		} else {
 			console.log(response);
 			console.log(data);
-			alert("something wrong");
+			alert("Invalid login");
 		}
 	};
 

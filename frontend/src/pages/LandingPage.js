@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; // Import useHistory
 
 function SearchPage() {
-	const [value, setValue] = useState("");
 	const navigate = useNavigate(); // Create a navigate object
 
 	const handleLoginClick = () => {
