@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useRef } from "react";
 import TextField from "@mui/material/TextField";
 import { useContext } from "react";
+import AuthContext from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 function RegisterComponent() {
 	const [firstName, setFirstName] = useState("");
@@ -14,7 +16,8 @@ function RegisterComponent() {
 	const typePasswordRef = useRef(null);
 	const retypePasswordRef = useRef(null);
 
-	const {}
+	const { user, createUser } = useContext(AuthContext);
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		if (password && samePassword) {
@@ -23,6 +26,12 @@ function RegisterComponent() {
 			retypePasswordRef.current.focus();
 		}
 	}, [samePassword]);
+
+	useEffect(() => {
+		if (user) {
+			navigate("/search");
+		}
+	}, [user]);
 
 	useEffect(() => {
 		validatePassword();
@@ -43,10 +52,19 @@ function RegisterComponent() {
 	function handleSubmit(e) {
 		e.preventDefault();
 		if (!samePassword) {
-			setError("Passwords do not match");
+			alert("Passwords do not match");
 			return;
 		}
 
+		const userData = {
+			first_name: firstName,
+			last_name: lastName,
+			email: email,
+			password: password,
+			re_password: retypePassword,
+		};
+
+		createUser(userData);
 		// Continue with form submission logic
 		console.log("Form submitted");
 	}

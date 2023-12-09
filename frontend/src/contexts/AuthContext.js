@@ -9,46 +9,54 @@ export default AuthContext;
 export const AuthProvider = ({ children }) => {
 	const navigate = useNavigate();
 
-	const [user, setUser] = useState("");
-	const [authTokens, setAuthTokens] = useState("");
-	// const [user1, setUser1] = useState(() =>
-	// 	localStorage.getItem("authTokens")
-	// 		? jwt_decode(localStorage.getItem("authTokens"))
-	// 		: null
-	// );
-	// const [authTokens, setAuthTokens] = useState(() =>
-	// 	localStorage.getItem("authTokens")
-	// 		? JSON.parse(localStorage.getItem("authTokens"))
-	// 		: null
-	// );
+	const [user, setUser] = useState(() =>
+		localStorage.getItem("authTokens")
+			? jwtDecode(localStorage.getItem("authTokens"))
+			: null
+	);
+	const [authTokens, setAuthTokens] = useState(() =>
+		localStorage.getItem("authTokens")
+			? JSON.parse(localStorage.getItem("authTokens"))
+			: null
+	);
 
-	const createUser = async (e) => {
-		e.preventDefault();
-		const response = await fetch("http://localhost:5000/auth/users/", {
+	const createUser = async (userData) => {
+		const response = await fetch("http://localhost:8000/auth/users/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				email: e.target.email.value,
-				first_name: e.target.first_name.value,
-				last_name: e.target.last_name.value,
-				password: e.target.password.value,
+				email: userData.email,
+				first_name: userData.first_name,
+				last_name: userData.last_name,
+				password: userData.password,
+				re_password: userData.re_password,
 			}),
 		});
+		const data = await response.json();
+		if (response.status === 201) {
+			navigate("/login");
+		} else {
+			let error = "";
+			for (let key in data) {
+				for (let err in data[key]) {
+					error += `${key} : ${data[key][err]}\n`;
+				}
+			}
+			alert(error);
+		}
 	};
 
-	const loginUser = async (e) => {
-		e.preventDefault();
-		// TODO fix url
-		const response = await fetch("http://localhost:5000/auth/jwt/create/", {
+	const loginUser = async (userData) => {
+		const response = await fetch("http://localhost:8000/auth/jwt/create/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				username: e.target.username.value,
-				password: e.target.password.value,
+				email: userData.email,
+				password: userData.password,
 			}),
 		});
 		const data = await response.json();
@@ -59,6 +67,8 @@ export const AuthProvider = ({ children }) => {
 			localStorage.setItem("authTokens", JSON.stringify(data));
 			navigate("/search");
 		} else {
+			console.log(response);
+			console.log(data);
 			alert("something wrong");
 		}
 	};
@@ -71,7 +81,8 @@ export const AuthProvider = ({ children }) => {
 	};
 
 	const updateToken = async () => {
-		let response = await fetch("http://localhost:5000/auth/jwt/refresh", {
+		console.log("Updating token");
+		let response = await fetch("http://localhost:8000/auth/jwt/refresh", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -83,9 +94,14 @@ export const AuthProvider = ({ children }) => {
 
 		if (response.status === 200) {
 			const data = await response.json();
-			setAuthTokens(data);
+			console.log(data);
+			setAuthTokens((prevAuthTokens) => ({
+				...prevAuthTokens,
+				access: data.access,
+			}));
+			console.log(authTokens);
 			setUser(jwtDecode(data.access));
-			localStorage.setItem("authTokens", JSON.stringify(data));
+			localStorage.setItem("authTokens", JSON.stringify(authTokens));
 		} else {
 			logout();
 		}
@@ -104,8 +120,9 @@ export const AuthProvider = ({ children }) => {
 	const contextData = {
 		user: user,
 		setUser: setUser,
-
-		// loginUser: loginUser,
+		createUser: createUser,
+		loginUser: loginUser,
+		logout: logout,
 	};
 
 	return (
