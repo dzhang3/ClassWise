@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useRef } from "react";
 import TextField from "@mui/material/TextField";
+import { useContext } from "react";
+import AuthContext from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 function RegisterComponent() {
-	const [userName, setUsername] = useState("");
+	const [firstName, setFirstName] = useState("");
+	const [lastName, setLastName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [retypePassword, setRetypePassword] = useState("");
@@ -12,6 +16,9 @@ function RegisterComponent() {
 	const typePasswordRef = useRef(null);
 	const retypePasswordRef = useRef(null);
 
+	const { user, createUser } = useContext(AuthContext);
+	const navigate = useNavigate();
+
 	useEffect(() => {
 		if (password && samePassword) {
 			typePasswordRef.current.focus();
@@ -19,6 +26,12 @@ function RegisterComponent() {
 			retypePasswordRef.current.focus();
 		}
 	}, [samePassword]);
+
+	useEffect(() => {
+		if (user) {
+			navigate("/search");
+		}
+	}, [user]);
 
 	useEffect(() => {
 		validatePassword();
@@ -39,10 +52,19 @@ function RegisterComponent() {
 	function handleSubmit(e) {
 		e.preventDefault();
 		if (!samePassword) {
-			setError("Passwords do not match");
+			alert("Passwords do not match");
 			return;
 		}
 
+		const userData = {
+			first_name: firstName,
+			last_name: lastName,
+			email: email,
+			password: password,
+			re_password: retypePassword,
+		};
+
+		createUser(userData);
 		// Continue with form submission logic
 		console.log("Form submitted");
 	}
@@ -73,9 +95,16 @@ function RegisterComponent() {
 					<TextField
 						required
 						variant="standard"
-						label="Username"
-						onChange={(e) => setUsername(e.target.value)}
-						value={userName}
+						label="First Name"
+						onChange={(e) => setFirstName(e.target.value)}
+						value={firstName}
+					/>
+					<TextField
+						required
+						variant="standard"
+						label="Last Name"
+						onChange={(e) => setLastName(e.target.value)}
+						value={lastName}
 					/>
 					<TextField
 						required
