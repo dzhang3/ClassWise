@@ -7,6 +7,8 @@ urlpatterns = [
     path('login/', views.loginPage, name="login"),
     path('logout/', views.logoutUser, name="logout"),
     path('', views.home, name="home"),
+    # TODO: change like below
+    #path('search/<str:course_code>/', views.search, name="search"),
     path('courses/', views.course_list, name="course-list"),
     path('courses/<int:pk>/', views.course_detail, name="course-detail"),
     #path('users/', views.user_list, name="user-list"),
