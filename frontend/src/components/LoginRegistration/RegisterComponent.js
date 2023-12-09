@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useRef } from "react";
 import TextField from "@mui/material/TextField";
+import { useContext } from "react";
 
 function RegisterComponent() {
-	const [userName, setUsername] = useState("");
+	const [firstName, setFirstName] = useState("");
+	const [lastName, setLastName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [retypePassword, setRetypePassword] = useState("");
@@ -11,6 +13,8 @@ function RegisterComponent() {
 	const [samePassword, setSamePassword] = useState(true);
 	const typePasswordRef = useRef(null);
 	const retypePasswordRef = useRef(null);
+
+	const {}
 
 	useEffect(() => {
 		if (password && samePassword) {
@@ -73,9 +77,16 @@ function RegisterComponent() {
 					<TextField
 						required
 						variant="standard"
-						label="Username"
-						onChange={(e) => setUsername(e.target.value)}
-						value={userName}
+						label="First Name"
+						onChange={(e) => setFirstName(e.target.value)}
+						value={firstName}
+					/>
+					<TextField
+						required
+						variant="standard"
+						label="Last Name"
+						onChange={(e) => setLastName(e.target.value)}
+						value={lastName}
 					/>
 					<TextField
 						required
