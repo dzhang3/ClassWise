@@ -4,14 +4,15 @@ from django.forms import inlineformset_factory
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
 
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from .models import Course, Instructor
 from .serializers import CourseSerializer
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework.reverse import reverse # to return fully-qualified URLs; 
 # converting generic views to function-based views
@@ -56,7 +57,8 @@ def logoutUser(request):
     logout(request)
     return redirect('login')
 
-@login_required(login_url='login')
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def home(request):
     # TODO: decide if we will this as POST Method
     if request.method == "POST":
@@ -97,7 +99,8 @@ def home(request):
     else:
         return render(request, 'ClassWise/search.html')
 
-@login_required(login_url='login')
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 @api_view(['GET', 'POST'])
 def course_list(request, format=None):
     """
@@ -115,8 +118,9 @@ def course_list(request, format=None):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-@login_required(login_url='login')
+
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def course_detail(request, pk, format=None):
     """
@@ -334,10 +338,13 @@ def get_instructor_rating(name):
     except Exception as e:
         print(f"An exception occurred: {e}")
         print("No pop-up window")
-    search_input = driver.find_element(By.CLASS_NAME, "Search__DebouncedSearchInput-sc-10lefvq-1 fwqnjW")
-    search_input.send_keys(name)
-    search_input.send_keys(Keys.RETURN)
-    rating = float(driver.find_element(By.CLASS_NAME, "CardNumRating__CardNumRatingNumber-sc-17t4b9u-2 bUneqk").text)
-    driver.quit()
+    finally:
+        # wait
+        wait = WebDriverWait(driver, 10)
+        search_input = driver.find_element(By.CLASS_NAME, "Search__DebouncedSearchInput-sc-10lefvq-1 fwqnjW")
+        search_input.send_keys(name)
+        search_input.send_keys(Keys.RETURN)
+        rating = float(driver.find_element(By.CLASS_NAME, "CardNumRating__CardNumRatingNumber-sc-17t4b9u-2 bUneqk").text)
+        driver.quit()
     print("rating is", rating)
     return rating
