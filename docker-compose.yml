@@ -16,15 +16,15 @@ services:
       dockerfile: Dockerfile
     container_name: classwise-backend
     env_file:
-      - .env
+      - backend/.env
     ports:
       - "8000:8000"
-    environment:
-      - SECRET_KEY=${SECRET_KEY}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_HOST=${DB_HOST}
+    # environment:
+    #   - SECRET_KEY=${SECRET_KEY}
+    #   - DB_NAME=${DB_NAME}
+    #   - DB_USER=${DB_USER}
+    #   - DB_PASSWORD=${DB_PASSWORD}
+    #   - DB_HOST=${DB_HOST}
     depends_on:
       - db
 
