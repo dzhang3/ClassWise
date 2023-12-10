@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.forms import inlineformset_factory
@@ -206,6 +207,7 @@ def get_course_info(course_code):
         ]
     }
     """
+    print("getting", course_code, "course info...")
     desired_user_agent = "https://www.whatismybrowser.com/detect/what-is-my-user-agent"
     # Create a ChromeOptions instance and set the user agent
     chrome_options = webdriver.ChromeOptions()
@@ -257,7 +259,10 @@ def get_course_info(course_code):
     l_course_code_title_credit = course_code_title_credit.split(" ") # ["COMP", "302", "r", "e", "s", "t"]
     course_code = ' '.join(map(str, l_course_code_title_credit[:2])) # "COMP 302"
     course_title = ' '.join(map(str, l_course_code_title_credit[2:-2])) # "r e s t"
-    course_credit = l_course_code_title_credit[-2][1] # "3"
+    if "(" in l_course_code_title_credit[-2][1]:
+        course_credit = l_course_code_title_credit[-2][1]
+    else:
+        course_credit = None
     course_json['course_code'] = course_code
     course_json['course_title'] = course_title
     course_json['course_credit'] = course_credit
@@ -279,52 +284,64 @@ def get_course_info(course_code):
             course_json['instructors'].append(course_instructor)
 
     # Find the course prerequisites, Corequisite, Restriction by Class
-    course_prerequisites = driver.find_element(By.CLASS_NAME, "catalog-notes")
-    # iterate through li tags and get text in p tags
-    li_objects = course_prerequisites.find_elements(By.TAG_NAME, "li")
-    for li_object in li_objects:
-        p_objects = li_object.find_elements(By.TAG_NAME, "p")
-        for p_object in p_objects:
-            note = p_object
-            if "Prerequisite" in note.text:
-                anchor_course_prerequisites = note.find_elements(By.TAG_NAME, "a")
-                for i in range(len(anchor_course_prerequisites)):
-                    anchor_course_prerequisite = anchor_course_prerequisites[i]
-                    course_prerequisite = anchor_course_prerequisite.text
-                    if i == 0:
-                        course_json['course_prerequisites'] = [course_prerequisite]
-                    else:
-                        course_json['course_prerequisites'].append(course_prerequisite)
-            elif "Corequisite" in note.text:
-                anchor_course_corequisites = note.find_elements(By.TAG_NAME, "a")
-                for i in range(len(anchor_course_corequisites)):
-                    anchor_course_corequisite = anchor_course_corequisites[i]
-                    course_corequisite = anchor_course_corequisite.text
-                    if i == 0:
-                        course_json['course_corequisites'] = [course_corequisite]
-                    else:
-                        course_json['course_corequisites'].append(course_corequisite)
-            elif "Restriction" in note.text:
-                course_restriction = note.text
-                course_json['course_restriction'] = course_restriction
+    try:
+        course_prerequisites = driver.find_element(By.CLASS_NAME, "catalog-notes")
+        # iterate through li tags and get text in p tags
+        li_objects = course_prerequisites.find_elements(By.TAG_NAME, "li")
+        for li_object in li_objects:
+            p_objects = li_object.find_elements(By.TAG_NAME, "p")
+            for p_object in p_objects:
+                note = p_object
+                if "Prerequisite" in note.text:
+                    anchor_course_prerequisites = note.find_elements(By.TAG_NAME, "a")
+                    for i in range(len(anchor_course_prerequisites)):
+                        anchor_course_prerequisite = anchor_course_prerequisites[i]
+                        course_prerequisite = anchor_course_prerequisite.text
+                        if i == 0:
+                            course_json['course_prerequisites'] = [course_prerequisite]
+                        else:
+                            course_json['course_prerequisites'].append(course_prerequisite)
+                elif "Corequisite" in note.text:
+                    anchor_course_corequisites = note.find_elements(By.TAG_NAME, "a")
+                    for i in range(len(anchor_course_corequisites)):
+                        anchor_course_corequisite = anchor_course_corequisites[i]
+                        course_corequisite = anchor_course_corequisite.text
+                        if i == 0:
+                            course_json['course_corequisites'] = [course_corequisite]
+                        else:
+                            course_json['course_corequisites'].append(course_corequisite)
+                elif "Restriction" in note.text:
+                    course_restriction = note.text
+                    course_json['course_restriction'] = course_restriction
+                else:
+                    continue
+    except Exception as e:
+        print(f"An exception occurred: {e}")
+        print("No prerequisites, corequisites, or restrictions")
+    try:
+        # Find the course offering terms by Class
+        course_offering_terms = driver.find_element(By.CLASS_NAME, "catalog-terms").text
+        course_json["course_offering_terms"] = course_offering_terms
+    except Exception as e:
+        print(f"An exception occurred: {e}")
+        print("No course offering terms")
+    try:
+        # Find the course previous grades table by Id
+        course_previous_grades_table = driver.find_element(By.ID, "mcen-class-averages-content-right-table")
+        # Find the course previous grades by class
+        course_previous_grades = course_previous_grades_table.find_elements(By.CLASS_NAME, "mcen-class-average-row")
+        for i in range(len(course_previous_grades)):
+            course_previous_grade = course_previous_grades[i]
+            term = course_previous_grade.find_element(By.TAG_NAME, "a").text # 2023 Winter:
+            letter_grade = course_previous_grade.find_element(By.CLASS_NAME, "mcen-class-average-val").text # A-
+            course_previous_grade = term + " " + letter_grade
+            if i == 0:
+                course_json['course_previous_grades'] = [course_previous_grade]
             else:
-                continue
-    # Find the course offering terms by Class
-    course_offering_terms = driver.find_element(By.CLASS_NAME, "catalog-terms").text
-    course_json["course_offering_terms"] = course_offering_terms
-    # Find the course previous grades table by Id
-    course_previous_grades_table = driver.find_element(By.ID, "mcen-class-averages-content-right-table")
-    # Find the course previous grades by class
-    course_previous_grades = course_previous_grades_table.find_elements(By.CLASS_NAME, "mcen-class-average-row")
-    for i in range(len(course_previous_grades)):
-        course_previous_grade = course_previous_grades[i]
-        term = course_previous_grade.find_element(By.TAG_NAME, "a").text # 2023 Winter:
-        letter_grade = course_previous_grade.find_element(By.CLASS_NAME, "mcen-class-average-val").text # A-
-        course_previous_grade = term + " " + letter_grade
-        if i == 0:
-            course_json['course_previous_grades'] = [course_previous_grade]
-        else:
-            course_json['course_previous_grades'].append(course_previous_grade)
+                course_json['course_previous_grades'].append(course_previous_grade)
+    except Exception as e:
+        print(f"An exception occurred: {e}")
+        print("No course previous grades")
     # Keep the browser open until user input
     # input("Press Enter to close the browser...")
     # Close the browser
@@ -387,3 +404,49 @@ def get_instructor_rating(name):
     print("rating is...", rating)
     driver.quit()
     return rating
+
+def prepopulate_database(request):
+    """this function populates the database with courses and instructors
+    """
+    course_code_json_file = '/Users/jaewonmoon/Desktop/projects/ClassWise/backend/ClassWise/course_codes.json'
+    # open the json file
+    with open(course_code_json_file) as f:
+        data = json.load(f)
+    # iterate through the json file to get course code
+    for course in data:
+        course_code = data[course]
+        # get course information
+        d_course_info = get_course_info(course_code)
+        # check if there already exists a course with the same course code
+        # if so, do nothing
+        if Course.objects.filter(course_code=course_code).exists():
+            continue
+        # if not, create a new course object based on the course code
+        course = Course.objects.create(course_code=d_course_info['course_code'],
+                                        course_name=d_course_info['course_title'], 
+                                        course_description=d_course_info['course_description'], 
+                                        course_restrictions=d_course_info['course_restriction'], 
+                                        course_offering_terms=d_course_info['course_offering_terms'], 
+                                        course_previous_grades=d_course_info['course_previous_grades'],
+                                        course_credit=d_course_info['course_credit'])
+        # create a new instructor object based on the instructor name
+        for instructor_name in d_course_info['instructors']:
+            # check if there already exists an instructor with the same name
+            if Instructor.objects.filter(instructor_name=instructor_name).exists():
+                continue
+            # if not, create a new instructor object based on the instructor name
+            else:
+                instructor = Instructor.objects.create(instructor_name=instructor_name)
+                instructor_rating = get_instructor_rating(instructor_name)
+                if instructor_rating != -1:
+                    instructor.instructor_rating = instructor_rating
+            instructor.save()
+            course.course_instructors.add(instructor)
+  
+        # filter course objects that have the same course code
+        prerequisites = Course.objects.filter(course_code__in=d_course_info['course_prerequisites'])
+        corequisites = Course.objects.filter(course_code__in=d_course_info['course_corequisites'])
+
+        course.course_prerequisites.set(prerequisites)
+        course.course_corequisites.set(corequisites)
+        course.save()
