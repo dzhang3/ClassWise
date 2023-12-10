@@ -1,4 +1,6 @@
 import json
+import os
+from django.conf import settings
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.forms import inlineformset_factory
@@ -27,6 +29,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
+base_dir = settings.BASE_DIR
 
 def registrationPage(request):
     form = CreateUserForm()
@@ -190,7 +194,7 @@ def get_course_info(course_code):
     # Create a ChromeOptions instance and set the user agent
     chrome_options = webdriver.ChromeOptions()
     # Path to your Chrome extension (.crx file)
-    extension_path = '/Users/jaewonmoon/Desktop/projects/ClassWise/backend/ClassWise/JLACAIMKACNKHLCGAPGAKPKLNIBGFKDE_4_3_37_0.crx'
+    extension_path = os.path.join(base_dir,'ClassWise','JLACAIMKACNKHLCGAPGAKPKLNIBGFKDE_4_3_37_0.crx')
     # Load the extension
     chrome_options.add_extension(extension_path)
     chrome_options.add_argument(f"user-agent={desired_user_agent}")
@@ -387,8 +391,7 @@ def get_instructor_info(name):
 def prepopulate_database(request):
     """this function populates the database with courses and instructors
     """
-    course_code_json_file = '/Users/jaewonmoon/Desktop/projects/ClassWise/backend/ClassWise/course_codes.json'
-    # open the json file
+    course_code_json_file = os.path.join(base_dir,'ClassWise','course_codes.json')    # open the json file
     with open(course_code_json_file) as f:
         data = json.load(f)
     # iterate through the json file to get course code
