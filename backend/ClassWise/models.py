@@ -16,7 +16,9 @@ class Comment(models.Model):
 
 class Instructor(models.Model):
     instructor_name = models.CharField(max_length=200, blank=False, null=False)
-    instructor_rating = models.FloatField(default=0.0, null=True, validators=[MinValueValidator(0.0), MaxValueValidator(5.0)],)
+    instructor_rating = models.FloatField(null=True, validators=[MinValueValidator(0.0), MaxValueValidator(5.0)],)
+    would_take_again = models.PositiveIntegerField(null=True, validators=[MinValueValidator(0), MaxValueValidator(100)],)
+    level_of_difficulty = models.FloatField(null=True, validators=[MinValueValidator(0.0), MaxValueValidator(5.0)],)
     def __str__(self):
         return self.instructor_name
 

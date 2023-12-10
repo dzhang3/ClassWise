@@ -94,15 +94,18 @@ def home(request):
             # check if there already exists an instructor with the same name
             if Instructor.objects.filter(instructor_name=instructor_name).exists():
                 instructor = Instructor.objects.get(instructor_name=instructor_name)
-                instructor_rating = get_instructor_rating(instructor_name)
-                if instructor_rating != -1:
-                    instructor.instructor_rating = instructor_rating
+                instructor_info = get_instructor_info(instructor_name)
+                if instructor_info != -1:
+                    instructor.instructor_rating = instructor_info["instructor_rating"]
+                    instructor.would_take_again = instructor_info["would_take_again"]
+                    instructor.level_of_difficulty = instructor_info["level_of_difficulty"]
             # if not, create a new instructor object based on the instructor name
             else:
                 instructor = Instructor.objects.create(instructor_name=instructor_name)
-                instructor_rating = get_instructor_rating(instructor_name)
-                if instructor_rating != -1:
-                    instructor.instructor_rating = instructor_rating
+                if instructor_info != -1:
+                    instructor.instructor_rating = instructor_info["instructor_rating"]
+                    instructor.would_take_again = instructor_info["would_take_again"]
+                    instructor.level_of_difficulty = instructor_info["level_of_difficulty"]
             instructor.save()
             course.course_instructors.add(instructor)
   
@@ -139,13 +142,10 @@ def course_list(request, format=None):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# @authentication_classes([TokenAuthentication])
-# @permission_classes([IsAuthenticated])
-@permission_classes([AllowAny])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def course_detail(request, pk, format=None):
-    print("course_detail function is called.")
-    print(request.META.get('HTTP_AUTHORIZATION'))
     if request.method == 'GET':
         # find the course object with the pk
         course = get_object_or_404(Course, pk=pk)
@@ -219,7 +219,6 @@ def get_course_info(course_code):
     # Click the link
     link.click()
 
-    # TODO: initialize the json object based on Course model fields.
     course_json = {
         "course_code": "",
         "course_title": "",
@@ -324,12 +323,17 @@ def get_course_info(course_code):
     # input("Press Enter to close the browser...")
     # Close the browser
     driver.quit()
-    print(course_json)
+    #print(course_json)
     return course_json
 
-def get_instructor_rating(name):
+def get_instructor_info(name):
     """this returns -1 if the instructor is not found in the website
     """
+    instructor_json = {
+        "rating": 0.0,
+        "would_take_again": 0,
+        "level_of_difficulty": 0.0
+    }
     desired_user_agent = "https://www.whatismybrowser.com/detect/what-is-my-user-agent"
     # Create a ChromeOptions instance and set the user agent
     chrome_options = webdriver.ChromeOptions()
@@ -370,18 +374,15 @@ def get_instructor_rating(name):
         rating= instructor_e.find_element(By.CLASS_NAME, "CardNumRating__CardNumRatingNumber-sc-17t4b9u-2").text
         would_take_again = instructor_e.find_elements(By.CLASS_NAME, "CardFeedback__CardFeedbackNumber-lq6nix-2")[0].text
         level_of_difficulty = instructor_e.find_elements(By.CLASS_NAME, "CardFeedback__CardFeedbackNumber-lq6nix-2")[1].text
-        print(rating, would_take_again, level_of_difficulty)
-        #instructor_e[0].click()
-        # TODO: We don't actually need to click
+        instructor_json["rating"] = rating
+        instructor_json["would_take_again"] = would_take_again
+        instructor_json["level_of_difficulty"] = level_of_difficulty
     except Exception as e:
         print("instructor page not found")
         driver.quit()
         return -1
-    # rating = float(driver.find_element(By.CLASS_NAME, "RatingValue__Numerator-qw8sqy-2").text)
-    # TODO: scrape would take again, level of difficulty AND change the model schema.
-    print("rating is...", rating)
     driver.quit()
-    return rating
+    return instructor_json
 
 def prepopulate_database(request):
     """this function populates the database with courses and instructors
@@ -393,14 +394,18 @@ def prepopulate_database(request):
     # iterate through the json file to get course code
     for course in data:
         course_code = data[course]
-        # get course information
-        d_course_info = get_course_info(course_code)
+        # course_code is currently COMP302 and has to be reformatted to COMP 302 for db
+        course_code_db = ' '.join(map(str, [course_code[:4], course_code[4:]]))
         # check if there already exists a course with the same course code
         # if so, do nothing
-        if Course.objects.filter(course_code=course_code).exists():
+        if Course.objects.filter(course_code=course_code_db).exists():
+            print("skipping ", course_code)
             continue
         # if not, create a new course object based on the course code
         else:
+            # get course information
+            d_course_info = get_course_info(course_code)
+            print("creating ", course_code)
             course = Course.objects.create(course_code=d_course_info['course_code'],
                                             course_name=d_course_info['course_title'], 
                                             course_description=d_course_info['course_description'], 
@@ -416,9 +421,11 @@ def prepopulate_database(request):
                 # if not, create a new instructor object based on the instructor name
                 else:
                     instructor = Instructor.objects.create(instructor_name=instructor_name)
-                    instructor_rating = get_instructor_rating(instructor_name)
-                    if instructor_rating != -1:
-                        instructor.instructor_rating = instructor_rating
+                    instructor_info = get_instructor_info(instructor_name)
+                    if instructor_info != -1:
+                        instructor.instructor_rating = instructor_info["instructor_rating"]
+                        instructor.would_take_again = instructor_info["would_take_again"]
+                        instructor.level_of_difficulty = instructor_info["level_of_difficulty"]
                 instructor.save()
                 course.course_instructors.add(instructor)
     
