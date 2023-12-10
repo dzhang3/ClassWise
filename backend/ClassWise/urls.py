@@ -10,6 +10,7 @@ urlpatterns = [
     #path('class/<str:course_code>/', views.home, name="course-search"),
     path('courses/', views.course_list, name="course-list"),
     path('courses/<int:pk>/', views.course_detail, name="course-detail"),
+    path('test/', views.test_view, name="test"),
     ]
 
 # We don't necessarily need to add these extra url patterns in, but it gives us a simple,

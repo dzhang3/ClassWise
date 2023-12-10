@@ -1,5 +1,7 @@
 import json
-from django.shortcuts import render, redirect
+import os
+from django.conf import settings
+from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.forms import inlineformset_factory
 from django.contrib.auth.forms import UserCreationForm
@@ -12,7 +14,7 @@ from rest_framework.parsers import JSONParser
 from .models import Course, Instructor
 from .serializers import CourseSerializer
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework.reverse import reverse # to return fully-qualified URLs; 
@@ -27,6 +29,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
+base_dir = settings.BASE_DIR
 
 def registrationPage(request):
     form = CreateUserForm()
@@ -94,15 +98,18 @@ def home(request):
             # check if there already exists an instructor with the same name
             if Instructor.objects.filter(instructor_name=instructor_name).exists():
                 instructor = Instructor.objects.get(instructor_name=instructor_name)
-                instructor_rating = get_instructor_rating(instructor_name)
-                if instructor_rating != -1:
-                    instructor.instructor_rating = instructor_rating
+                instructor_info = get_instructor_info(instructor_name)
+                if instructor_info != -1:
+                    instructor.instructor_rating = instructor_info["instructor_rating"]
+                    instructor.would_take_again = instructor_info["would_take_again"]
+                    instructor.level_of_difficulty = instructor_info["level_of_difficulty"]
             # if not, create a new instructor object based on the instructor name
             else:
                 instructor = Instructor.objects.create(instructor_name=instructor_name)
-                instructor_rating = get_instructor_rating(instructor_name)
-                if instructor_rating != -1:
-                    instructor.instructor_rating = instructor_rating
+                if instructor_info != -1:
+                    instructor.instructor_rating = instructor_info["instructor_rating"]
+                    instructor.would_take_again = instructor_info["would_take_again"]
+                    instructor.level_of_difficulty = instructor_info["level_of_difficulty"]
             instructor.save()
             course.course_instructors.add(instructor)
   
@@ -143,43 +150,18 @@ def course_list(request, format=None):
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def course_detail(request, pk, format=None):
-    """
-    Retrieve, update or delete a code snippet.
-    """
-    try:
-        course = Course.objects.get(pk=pk)
-    except Course.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
     if request.method == 'GET':
-        # get the updated data from the web. TODO: we might change this later.
-        course_code = request.GET.get('course_code')
-        d_course_info = get_course_info(course_code)
-        # update the course model with the updated data
-        course.course_code = d_course_info['course_code']
-        course.course_name = d_course_info['course_title']
-        course.course_description = d_course_info['course_description']
-        course.course_instructors = d_course_info['instructors']
-        course.course_prerequisites = d_course_info['course_prerequisites']
-        course.course_restrictions = d_course_info['course_restriction']
-        course.course_offering_terms = d_course_info['course_offering_terms']
-        course.course_previous_grades = d_course_info['course_previous_grades']
-        course.course_credit = d_course_info['course_credit']
-        course.save()
+        # find the course object with the pk
+        course = get_object_or_404(Course, pk=pk)
         serializer = CourseSerializer(course)
         return Response(serializer.data)
-
-    elif request.method == 'PUT':
-        serializer = CourseSerializer(course, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
+    else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == 'DELETE':
-        course.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
     
+@api_view(['GET'])
+def test_view(request):
+    return Response({"message": "This is a test."})
+
 def get_course_info(course_code):
     """returns a json object containing course information
     json object will look like this
@@ -212,7 +194,7 @@ def get_course_info(course_code):
     # Create a ChromeOptions instance and set the user agent
     chrome_options = webdriver.ChromeOptions()
     # Path to your Chrome extension (.crx file)
-    extension_path = '/Users/jaewonmoon/Downloads/JLACAIMKACNKHLCGAPGAKPKLNIBGFKDE_4_3_37_0.crx'
+    extension_path = os.path.join(base_dir,'ClassWise','JLACAIMKACNKHLCGAPGAKPKLNIBGFKDE_4_3_37_0.crx')
     # Load the extension
     chrome_options.add_extension(extension_path)
     chrome_options.add_argument(f"user-agent={desired_user_agent}")
@@ -241,7 +223,6 @@ def get_course_info(course_code):
     # Click the link
     link.click()
 
-    # TODO: initialize the json object based on Course model fields.
     course_json = {
         "course_code": "",
         "course_title": "",
@@ -346,12 +327,17 @@ def get_course_info(course_code):
     # input("Press Enter to close the browser...")
     # Close the browser
     driver.quit()
-    print(course_json)
+    #print(course_json)
     return course_json
 
-def get_instructor_rating(name):
+def get_instructor_info(name):
     """this returns -1 if the instructor is not found in the website
     """
+    instructor_json = {
+        "rating": 0.0,
+        "would_take_again": 0,
+        "level_of_difficulty": 0.0
+    }
     desired_user_agent = "https://www.whatismybrowser.com/detect/what-is-my-user-agent"
     # Create a ChromeOptions instance and set the user agent
     chrome_options = webdriver.ChromeOptions()
@@ -392,61 +378,64 @@ def get_instructor_rating(name):
         rating= instructor_e.find_element(By.CLASS_NAME, "CardNumRating__CardNumRatingNumber-sc-17t4b9u-2").text
         would_take_again = instructor_e.find_elements(By.CLASS_NAME, "CardFeedback__CardFeedbackNumber-lq6nix-2")[0].text
         level_of_difficulty = instructor_e.find_elements(By.CLASS_NAME, "CardFeedback__CardFeedbackNumber-lq6nix-2")[1].text
-        print(rating, would_take_again, level_of_difficulty)
-        #instructor_e[0].click()
-        # TODO: We don't actually need to click
+        instructor_json["rating"] = rating
+        instructor_json["would_take_again"] = would_take_again
+        instructor_json["level_of_difficulty"] = level_of_difficulty
     except Exception as e:
         print("instructor page not found")
         driver.quit()
         return -1
-    # rating = float(driver.find_element(By.CLASS_NAME, "RatingValue__Numerator-qw8sqy-2").text)
-    # TODO: scrape would take again, level of difficulty AND change the model schema.
-    print("rating is...", rating)
     driver.quit()
-    return rating
+    return instructor_json
 
 def prepopulate_database(request):
     """this function populates the database with courses and instructors
     """
-    course_code_json_file = '/Users/jaewonmoon/Desktop/projects/ClassWise/backend/ClassWise/course_codes.json'
-    # open the json file
+    course_code_json_file = os.path.join(base_dir,'ClassWise','course_codes.json')    # open the json file
     with open(course_code_json_file) as f:
         data = json.load(f)
     # iterate through the json file to get course code
     for course in data:
         course_code = data[course]
-        # get course information
-        d_course_info = get_course_info(course_code)
+        # course_code is currently COMP302 and has to be reformatted to COMP 302 for db
+        course_code_db = ' '.join(map(str, [course_code[:4], course_code[4:]]))
         # check if there already exists a course with the same course code
         # if so, do nothing
-        if Course.objects.filter(course_code=course_code).exists():
+        if Course.objects.filter(course_code=course_code_db).exists():
+            print("skipping ", course_code)
             continue
         # if not, create a new course object based on the course code
-        course = Course.objects.create(course_code=d_course_info['course_code'],
-                                        course_name=d_course_info['course_title'], 
-                                        course_description=d_course_info['course_description'], 
-                                        course_restrictions=d_course_info['course_restriction'], 
-                                        course_offering_terms=d_course_info['course_offering_terms'], 
-                                        course_previous_grades=d_course_info['course_previous_grades'],
-                                        course_credit=d_course_info['course_credit'])
-        # create a new instructor object based on the instructor name
-        for instructor_name in d_course_info['instructors']:
-            # check if there already exists an instructor with the same name
-            if Instructor.objects.filter(instructor_name=instructor_name).exists():
-                continue
-            # if not, create a new instructor object based on the instructor name
-            else:
-                instructor = Instructor.objects.create(instructor_name=instructor_name)
-                instructor_rating = get_instructor_rating(instructor_name)
-                if instructor_rating != -1:
-                    instructor.instructor_rating = instructor_rating
-            instructor.save()
-            course.course_instructors.add(instructor)
-  
-        # filter course objects that have the same course code
-        prerequisites = Course.objects.filter(course_code__in=d_course_info['course_prerequisites'])
-        corequisites = Course.objects.filter(course_code__in=d_course_info['course_corequisites'])
+        else:
+            # get course information
+            d_course_info = get_course_info(course_code)
+            print("creating ", course_code)
+            course = Course.objects.create(course_code=d_course_info['course_code'],
+                                            course_name=d_course_info['course_title'], 
+                                            course_description=d_course_info['course_description'], 
+                                            course_restrictions=d_course_info['course_restriction'], 
+                                            course_offering_terms=d_course_info['course_offering_terms'], 
+                                            course_previous_grades=d_course_info['course_previous_grades'],
+                                            course_credit=d_course_info['course_credit'])
+            # create a new instructor object based on the instructor name
+            for instructor_name in d_course_info['instructors']:
+                # check if there already exists an instructor with the same name
+                if Instructor.objects.filter(instructor_name=instructor_name).exists():
+                    continue
+                # if not, create a new instructor object based on the instructor name
+                else:
+                    instructor = Instructor.objects.create(instructor_name=instructor_name)
+                    instructor_info = get_instructor_info(instructor_name)
+                    if instructor_info != -1:
+                        instructor.instructor_rating = instructor_info["instructor_rating"]
+                        instructor.would_take_again = instructor_info["would_take_again"]
+                        instructor.level_of_difficulty = instructor_info["level_of_difficulty"]
+                instructor.save()
+                course.course_instructors.add(instructor)
+    
+            # filter course objects that have the same course code
+            prerequisites = Course.objects.filter(course_code__in=d_course_info['course_prerequisites'])
+            corequisites = Course.objects.filter(course_code__in=d_course_info['course_corequisites'])
 
-        course.course_prerequisites.set(prerequisites)
-        course.course_corequisites.set(corequisites)
-        course.save()
+            course.course_prerequisites.set(prerequisites)
+            course.course_corequisites.set(corequisites)
+            course.save()

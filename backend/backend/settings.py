@@ -92,17 +92,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -174,6 +163,7 @@ REST_FRAMEWORK = {
 }
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
+    'AUTH_HEADER_TYPES': ('Bearer',),
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=90),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'AUTH_TOKEN_CLASSES': (
