@@ -1,5 +1,5 @@
 import json
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.forms import inlineformset_factory
 from django.contrib.auth.forms import UserCreationForm
@@ -12,7 +12,7 @@ from rest_framework.parsers import JSONParser
 from .models import Course, Instructor
 from .serializers import CourseSerializer
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework.reverse import reverse # to return fully-qualified URLs; 
@@ -139,47 +139,25 @@ def course_list(request, format=None):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 @api_view(['GET'])
 def course_detail(request, pk, format=None):
-    """
-    Retrieve, update or delete a code snippet.
-    """
-    try:
-        course = Course.objects.get(pk=pk)
-    except Course.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
+    print("course_detail function is called.")
+    print(request.META.get('HTTP_AUTHORIZATION'))
     if request.method == 'GET':
-        # get the updated data from the web. TODO: we might change this later.
-        course_code = request.GET.get('course_code')
-        d_course_info = get_course_info(course_code)
-        # update the course model with the updated data
-        course.course_code = d_course_info['course_code']
-        course.course_name = d_course_info['course_title']
-        course.course_description = d_course_info['course_description']
-        course.course_instructors = d_course_info['instructors']
-        course.course_prerequisites = d_course_info['course_prerequisites']
-        course.course_restrictions = d_course_info['course_restriction']
-        course.course_offering_terms = d_course_info['course_offering_terms']
-        course.course_previous_grades = d_course_info['course_previous_grades']
-        course.course_credit = d_course_info['course_credit']
-        course.save()
+        # find the course object with the pk
+        course = get_object_or_404(Course, pk=pk)
         serializer = CourseSerializer(course)
         return Response(serializer.data)
-
-    elif request.method == 'PUT':
-        serializer = CourseSerializer(course, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
+    else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == 'DELETE':
-        course.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
     
+@api_view(['GET'])
+def test_view(request):
+    return Response({"message": "This is a test."})
+
 def get_course_info(course_code):
     """returns a json object containing course information
     json object will look like this
@@ -212,7 +190,7 @@ def get_course_info(course_code):
     # Create a ChromeOptions instance and set the user agent
     chrome_options = webdriver.ChromeOptions()
     # Path to your Chrome extension (.crx file)
-    extension_path = '/Users/jaewonmoon/Downloads/JLACAIMKACNKHLCGAPGAKPKLNIBGFKDE_4_3_37_0.crx'
+    extension_path = '/Users/jaewonmoon/Desktop/projects/ClassWise/backend/ClassWise/JLACAIMKACNKHLCGAPGAKPKLNIBGFKDE_4_3_37_0.crx'
     # Load the extension
     chrome_options.add_extension(extension_path)
     chrome_options.add_argument(f"user-agent={desired_user_agent}")
@@ -422,31 +400,32 @@ def prepopulate_database(request):
         if Course.objects.filter(course_code=course_code).exists():
             continue
         # if not, create a new course object based on the course code
-        course = Course.objects.create(course_code=d_course_info['course_code'],
-                                        course_name=d_course_info['course_title'], 
-                                        course_description=d_course_info['course_description'], 
-                                        course_restrictions=d_course_info['course_restriction'], 
-                                        course_offering_terms=d_course_info['course_offering_terms'], 
-                                        course_previous_grades=d_course_info['course_previous_grades'],
-                                        course_credit=d_course_info['course_credit'])
-        # create a new instructor object based on the instructor name
-        for instructor_name in d_course_info['instructors']:
-            # check if there already exists an instructor with the same name
-            if Instructor.objects.filter(instructor_name=instructor_name).exists():
-                continue
-            # if not, create a new instructor object based on the instructor name
-            else:
-                instructor = Instructor.objects.create(instructor_name=instructor_name)
-                instructor_rating = get_instructor_rating(instructor_name)
-                if instructor_rating != -1:
-                    instructor.instructor_rating = instructor_rating
-            instructor.save()
-            course.course_instructors.add(instructor)
-  
-        # filter course objects that have the same course code
-        prerequisites = Course.objects.filter(course_code__in=d_course_info['course_prerequisites'])
-        corequisites = Course.objects.filter(course_code__in=d_course_info['course_corequisites'])
+        else:
+            course = Course.objects.create(course_code=d_course_info['course_code'],
+                                            course_name=d_course_info['course_title'], 
+                                            course_description=d_course_info['course_description'], 
+                                            course_restrictions=d_course_info['course_restriction'], 
+                                            course_offering_terms=d_course_info['course_offering_terms'], 
+                                            course_previous_grades=d_course_info['course_previous_grades'],
+                                            course_credit=d_course_info['course_credit'])
+            # create a new instructor object based on the instructor name
+            for instructor_name in d_course_info['instructors']:
+                # check if there already exists an instructor with the same name
+                if Instructor.objects.filter(instructor_name=instructor_name).exists():
+                    continue
+                # if not, create a new instructor object based on the instructor name
+                else:
+                    instructor = Instructor.objects.create(instructor_name=instructor_name)
+                    instructor_rating = get_instructor_rating(instructor_name)
+                    if instructor_rating != -1:
+                        instructor.instructor_rating = instructor_rating
+                instructor.save()
+                course.course_instructors.add(instructor)
+    
+            # filter course objects that have the same course code
+            prerequisites = Course.objects.filter(course_code__in=d_course_info['course_prerequisites'])
+            corequisites = Course.objects.filter(course_code__in=d_course_info['course_corequisites'])
 
-        course.course_prerequisites.set(prerequisites)
-        course.course_corequisites.set(corequisites)
-        course.save()
+            course.course_prerequisites.set(prerequisites)
+            course.course_corequisites.set(corequisites)
+            course.save()
