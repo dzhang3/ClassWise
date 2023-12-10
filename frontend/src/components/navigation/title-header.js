@@ -5,7 +5,7 @@ import AuthContext from "../../contexts/AuthContext";
 
 export default function TitleHeader() {
 	const navigate = useNavigate();
-	const { user, setUser } = useContext(AuthContext);
+	const { user, logout } = useContext(AuthContext);
 
 	const handleClasswiseClick = () => {
 		// Navigate to the '/' page
@@ -19,7 +19,7 @@ export default function TitleHeader() {
 
 	const handleLogoutClick = () => {
 		// Navigate to the '/login' page
-		setUser("");
+		logout();
 		navigate("/");
 	};
 

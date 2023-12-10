@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
@@ -10,19 +10,23 @@ function LoginComponent() {
 	const [error, setError] = useState(null);
 	const navigate = useNavigate(); // Use useNavigate hook
 
-	const { user, setUser } = useContext(AuthContext);
+	const { user, loginUser } = useContext(AuthContext);
 
-	async function handleSubmit(e) {
-		e.preventDefault(); // Prevent the default form submission behavior
-
-		try {
-			// Perform your login logic here
-			// If login is successful, navigate to the desired route
-			setUser("user");
+	useEffect(() => {
+		if (user) {
 			navigate("/search");
-		} catch (err) {
-			setError("Failed to log in");
 		}
+	}, [user]);
+
+	function handleSubmit(e) {
+		e.preventDefault();
+
+		const userData = {
+			email: email,
+			password: password,
+		};
+
+		loginUser(userData);
 	}
 
 	return (
