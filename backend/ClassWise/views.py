@@ -56,16 +56,35 @@ def comment_detail(request, pk, format=None):
         serializer = CommentSerializer(comment)
         return Response(serializer.data)
     elif request.method == 'DELETE':
-        comment = get_object_or_404(Comment, pk=pk)
-        comment.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            comment = get_object_or_404(Comment, pk=pk)
+            if comment.comment_user_id != request.user.id:
+                return Response({'message': 'You are not the author of this comment'}, status=status.HTTP_401_UNAUTHORIZED)
+            comment.delete()
+            return Response({'message': 'Comment deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except Comment.DoesNotExist:
+            return Response({'message': 'Comment not found'}, status=status.HTTP_404_NOT_FOUND)
     elif request.method == 'PUT':
         comment = get_object_or_404(Comment, pk=pk)
         serializer = CommentSerializer(comment, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
+        if comment.comment_user_id != request.user.id:
+            return Response({'message': 'You are not the author of this comment'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        comment.comment_text = request.data.get('comment_text', comment.comment_text)
+        comment.comment_rating = request.data.get('comment_rating', comment.comment_rating)
+        comment.comment_grade = request.data.get('comment_grade', comment.comment_grade)
+        comment.comment_instructor = request.data.get('comment_instructor', comment.comment_instructor)
+
+        try:
+            comment.full_clean()  # Validate the model instance
+            comment.save()
+            return Response({'message': 'Comment updated successfully'})
+        except Comment.DoesNotExist:
+            return Response({'message': 'Comment not found'}, status=status.HTTP_404_NOT_FOUND)
+        except:
+            # Return a 400 Bad Request for invalid data
+            return Response({'errors': e.message_dict}, status=status.HTTP_400_BAD_REQUEST)
+
 
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])

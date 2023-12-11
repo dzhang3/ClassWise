@@ -105,7 +105,7 @@ function ClassInfo({ courseData }) {
 				courseRestrictions={courseRestrictions}
 			/>
 			<InstructorInfo courseTerms={courseTerms} />
-			<CourseReviews />
+			<CourseReviews courseId={courseId} />
 		</div>
 	);
 }
