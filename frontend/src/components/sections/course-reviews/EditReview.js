@@ -4,9 +4,20 @@ import { TextField } from "@mui/material";
 import Button from "@mui/material/Button";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { grey } from "@mui/material/colors";
+import { editReview, deleteReview } from "../../../services";
 
 export default function EditReview(props) {
-	const { setIsEditing, name, date, rating, grade, comment } = props;
+	const {
+		id,
+		setIsEditing,
+		name,
+		date,
+		rating,
+		grade,
+		comment,
+		setReviews,
+		reviews,
+	} = props;
 	const [newRating, setRating] = useState(rating);
 	const [newProfessor, setProfessor] = useState(name);
 	const [newComment, setComment] = useState(comment);
@@ -14,6 +25,28 @@ export default function EditReview(props) {
 
 	const handleClick = () => {
 		setIsEditing(false);
+	};
+	const handleDelete = () => {
+		deleteReview(id).then(() => {
+			window.location.reload();
+		});
+	};
+	const handleEdit = () => {
+		const review = {
+			comment_text: newComment,
+			comment_instructor: newProfessor,
+			comment_rating: newRating,
+			comment_grade: newGrade,
+		};
+		editReview(id, review)
+			.then(() => {
+				setIsEditing(false);
+				window.location.reload();
+			})
+			.catch((error) => {
+				console.error("Error updating review:", error);
+				// Handle error (e.g., show a message to the user)
+			});
 	};
 
 	return (
@@ -107,10 +140,18 @@ export default function EditReview(props) {
 					>
 						Cancel
 					</Button>
-					<Button variant="outlined" color="error">
+					<Button
+						variant="outlined"
+						color="error"
+						onClick={handleDelete}
+					>
 						Delete
 					</Button>
-					<Button variant="outlined" color="success">
+					<Button
+						variant="outlined"
+						color="success"
+						onClick={handleEdit}
+					>
 						Save
 					</Button>
 				</div>

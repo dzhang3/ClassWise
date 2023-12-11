@@ -1,123 +1,90 @@
 import json
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from django.forms import inlineformset_factory
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+import os
+from django.conf import settings
+from django.shortcuts import get_object_or_404, render
 
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.parsers import JSONParser
-from .models import Course, Instructor
-from .serializers import CourseSerializer
+from .models import Course, Instructor, Comment
+from .serializers import CourseSerializer, InstructorSerializer, CommentSerializer
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
-from rest_framework.reverse import reverse # to return fully-qualified URLs; 
 # converting generic views to function-based views
 from rest_framework import status
 # Create your views here.
-from .forms import CourseForm, CreateUserForm
-#from .filters import OrderFilter
-
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-def registrationPage(request):
-    form = CreateUserForm()
-    if request.method == 'POST':
-        form = CreateUserForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request,'Account was created for ' + form.cleaned_data.get('username'))
-            return redirect('login')
-    context = {'form':form}
-    return render(request, 'ClassWise/register.html', context)
+base_dir = settings.BASE_DIR
 
-def loginPage(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            print("Login successful")
-            return redirect('home')
-        else:
-            print("Login failed")
-            messages.info(request, 'Username or password is incorrect')
-    context = {}
-    return render(request, 'ClassWise/login.html', context)
-
-def logoutUser(request):
-    logout(request)
-    return redirect('login')
-
-#@api_view(['GET', 'POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-# TODO: change url like /search/<str:course_code>/ and add parameter course_code to the function
-def home(request):
-    # TODO: decide if we will this as POST Method
-    if request.method == "POST":
-        #print(request.POST)
-        course_code = request.POST.get('course_code')
-        d_course_info = get_course_info(course_code)
-        # check if there already exists a course with the same course code
-        # if so, update the course model with the updated data
-
-        if Course.objects.filter(course_code=course_code).exists():
-            course = Course.objects.get(course_code=course_code)
-            course.course_code = d_course_info['course_code']
-            course.course_name = d_course_info['course_title']
-            course.course_description = d_course_info['course_description']
-            course.course_restrictions = d_course_info['course_restriction']
-            course.course_offering_terms = d_course_info['course_offering_terms']
-            course.course_previous_grades = d_course_info['course_previous_grades']
-            course.course_credit = d_course_info['course_credit']
-        else:
-            # if not, create a new course object based on the course code
-            course = Course.objects.create(course_code=d_course_info['course_code'],
-                                            course_name=d_course_info['course_title'], 
-                                            course_description=d_course_info['course_description'], 
-                                            course_restrictions=d_course_info['course_restriction'], 
-                                            course_offering_terms=d_course_info['course_offering_terms'], 
-                                            course_previous_grades=d_course_info['course_previous_grades'],
-                                            course_credit=d_course_info['course_credit'])
-        # create a new instructor object based on the instructor name
-        for instructor_name in d_course_info['instructors']:
-            # check if there already exists an instructor with the same name
-            if Instructor.objects.filter(instructor_name=instructor_name).exists():
-                instructor = Instructor.objects.get(instructor_name=instructor_name)
-                instructor_rating = get_instructor_rating(instructor_name)
-                if instructor_rating != -1:
-                    instructor.instructor_rating = instructor_rating
-            # if not, create a new instructor object based on the instructor name
-            else:
-                instructor = Instructor.objects.create(instructor_name=instructor_name)
-                instructor_rating = get_instructor_rating(instructor_name)
-                if instructor_rating != -1:
-                    instructor.instructor_rating = instructor_rating
-            instructor.save()
-            course.course_instructors.add(instructor)
-  
-        # filter course objects that have the same course code
-        prerequisites = Course.objects.filter(course_code__in=d_course_info['course_prerequisites'])
-        corequisites = Course.objects.filter(course_code__in=d_course_info['course_corequisites'])
-
-        course.course_prerequisites.set(prerequisites)
-        course.course_corequisites.set(corequisites)
-        course.save()
-        # TODO: currently, we are only showing one course detail.
-        serializer = CourseSerializer(course, many=False)
+@api_view(['GET', 'POST'])
+def comment_list(request, course_code, format=None):
+    if request.method == 'GET':
+        # find the course id using the course code
+        course_pk = get_object_or_404(Course, course_code=course_code).pk
+        comments = Comment.objects.all().filter(comment_course_id=course_pk)
+        serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
-    else:
-        return render(request, 'ClassWise/search.html')
+    elif request.method == 'POST':
+        # find the course id using the course code
+        data = request.data
+        course_pk = get_object_or_404(Course, course_code=request.data['comment_course']).pk
+        data["comment_course"] = course_pk
+        print(data)
+        serializer = CommentSerializer(data=data)
+        if serializer.is_valid():
+            # check if the comment is already in the database
+            if Comment.objects.filter(comment_user=request.user, comment_course_id=course_pk).exists():
+                return Response("You already left a comment for the course.", status=status.HTTP_400_BAD_REQUEST)
+            else:
+                serializer.save(comment_user=request.user, comment_course_id=course_pk, comment_instructor=request.data['comment_instructor'], comment_text=request.data['comment_text'], comment_grade=request.data['comment_grade'], comment_rating=request.data['comment_rating'])
+                print(serializer.data)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@api_view(['GET', 'DELETE', 'PUT'])
+def comment_detail(request, pk, format=None):
+    if request.method == 'GET':
+        comment = get_object_or_404(Comment, pk=pk)
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data)
+    elif request.method == 'DELETE':
+        try:
+            comment = get_object_or_404(Comment, pk=pk)
+            if comment.comment_user_id != request.user.id:
+                return Response({'message': 'You are not the author of this comment'}, status=status.HTTP_401_UNAUTHORIZED)
+            comment.delete()
+            return Response({'message': 'Comment deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except Comment.DoesNotExist:
+            return Response({'message': 'Comment not found'}, status=status.HTTP_404_NOT_FOUND)
+    elif request.method == 'PUT':
+        comment = get_object_or_404(Comment, pk=pk)
+        serializer = CommentSerializer(comment, data=request.data)
+        if comment.comment_user_id != request.user.id:
+            return Response({'message': 'You are not the author of this comment'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        comment.comment_text = request.data.get('comment_text', comment.comment_text)
+        comment.comment_rating = request.data.get('comment_rating', comment.comment_rating)
+        comment.comment_grade = request.data.get('comment_grade', comment.comment_grade)
+        comment.comment_instructor = request.data.get('comment_instructor', comment.comment_instructor)
+
+        try:
+            comment.full_clean()  # Validate the model instance
+            comment.save()
+            return Response({'message': 'Comment updated successfully'})
+        except Comment.DoesNotExist:
+            return Response({'message': 'Comment not found'}, status=status.HTTP_404_NOT_FOUND)
+        except:
+            # Return a 400 Bad Request for invalid data
+            return Response({'errors': e.message_dict}, status=status.HTTP_400_BAD_REQUEST)
+
 
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -142,124 +109,85 @@ def course_list(request, format=None):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
-def course_detail(request, pk, format=None):
-    """
-    Retrieve, update or delete a code snippet.
-    """
-    try:
-        course = Course.objects.get(pk=pk)
-    except Course.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
+def course_detail(request, course_code, format=None):
     if request.method == 'GET':
-        # get the updated data from the web. TODO: we might change this later.
-        course_code = request.GET.get('course_code')
-        d_course_info = get_course_info(course_code)
-        # update the course model with the updated data
-        course.course_code = d_course_info['course_code']
-        course.course_name = d_course_info['course_title']
-        course.course_description = d_course_info['course_description']
-        course.course_instructors = d_course_info['instructors']
-        course.course_prerequisites = d_course_info['course_prerequisites']
-        course.course_restrictions = d_course_info['course_restriction']
-        course.course_offering_terms = d_course_info['course_offering_terms']
-        course.course_previous_grades = d_course_info['course_previous_grades']
-        course.course_credit = d_course_info['course_credit']
-        course.save()
+        # find the course object with the course_code
+        course = get_object_or_404(Course, course_code=course_code)
         serializer = CourseSerializer(course)
         return Response(serializer.data)
-
-    elif request.method == 'PUT':
-        serializer = CourseSerializer(course, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
+    else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
-        course.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@api_view(['GET'])
+def instructor_detail(request, instructor_name, format=None):
     
+    if request.method == 'GET':
+        instructor = get_object_or_404(Instructor, instructor_name=instructor_name)
+        serializer = InstructorSerializer(instructor)
+        return Response(serializer.data)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 def get_course_info(course_code):
     """returns a json object containing course information
-    json object will look like this
-    {
-        "course_code": "COMP 302",
-        "course_name": "Programming Languages and Paradigms",
-        "course_description": "This course is an introduction to the theory of computation. Topics include finite automata and regular languages, pushdown automata and context-free languages, Turing machines, the Chomsky hierarchy, decidability, and the halting problem.",
-        "instructors": [
-            "Jacob Errington",
-            "Max Kopinsky"
-        ],
-        "course_prerequisites": [
-            "COMP 250",
-            "MATH 240"
-        ],
-        "course_corequisites": [
-        ],
-        "course_restriction": "Not open to students who have taken or are taking COMP 250 or COMP 251.",
-        "course_offering_terms": "Winter 2023",
-        "course_previous_grades": [
-            "2023 Winter: A-",
-            "2022 Winter: A",
-            "2021 Winter: A-",
-            "2020 Winter: A",
-        ]
-    }
+    >>> get_course_info("COMP-302")
     """
     print("getting", course_code, "course info...")
     desired_user_agent = "https://www.whatismybrowser.com/detect/what-is-my-user-agent"
     # Create a ChromeOptions instance and set the user agent
     chrome_options = webdriver.ChromeOptions()
     # Path to your Chrome extension (.crx file)
-    extension_path = '/Users/jaewonmoon/Downloads/JLACAIMKACNKHLCGAPGAKPKLNIBGFKDE_4_3_37_0.crx'
+    extension_path = os.path.join(base_dir,'ClassWise','JLACAIMKACNKHLCGAPGAKPKLNIBGFKDE_4_3_37_0.crx')
     # Load the extension
     chrome_options.add_extension(extension_path)
     chrome_options.add_argument(f"user-agent={desired_user_agent}")
     #chrome_options.add_argument("--headless")
     driver = webdriver.Chrome(options=chrome_options)
     # Navigate to the website
-    driver.get("https://www.mcgill.ca/study/2023-2024/courses/search")
+    link = "https://www.mcgill.ca/study/2023-2024/courses/"+course_code
+    driver.get(link)
 
-    # Find the search input field by ID and input "COMP512"
-    search_input = driver.find_element(By.ID, "edit-keys")
-    search_input.send_keys(course_code)
+    # # Find the search input field by ID and input "COMP512"
+    # search_input = driver.find_element(By.ID, "edit-keys")
+    # search_input.send_keys(course_code)
     
-    # Find the submit button by ID and click it
-    submit_button = driver.find_element(By.ID, "edit-submit")
-    submit_button.click()
+    # # Find the submit button by ID and click it
+    # submit_button = driver.find_element(By.ID, "edit-submit")
+    # submit_button.click()
 
-    # Wait for the page to load (you may need to adjust the wait time)
-    driver.implicitly_wait(10)
+    # # Wait for the page to load (you may need to adjust the wait time)
+    # driver.implicitly_wait(10)
 
-    # Find the first row by class name
-    first_row = driver.find_element(By.CLASS_NAME, "views-row-1")
+    # # Find the first row by class name
+    # first_row = driver.find_element(By.CLASS_NAME, "views-row-1")
 
-    # Find the link in the first row by tag name
-    link = first_row.find_element(By.TAG_NAME, "a")
+    # # Find the link in the first row by tag name
+    # link = first_row.find_element(By.TAG_NAME, "a")
 
-    # Click the link
-    link.click()
+    # # Click the link
+    # link.click()
 
-    # TODO: initialize the json object based on Course model fields.
     course_json = {
         "course_code": "",
         "course_title": "",
         "course_description": "",
         "instructors": [],
-        "course_prerequisites": [],
-        "course_corequisites": [],
-        "course_restriction": "",
-        "course_offering_terms": "",
+        "course_prerequisites": None, # []
+        "course_corequisites": None, # []
+        "course_restriction": None, # ""
+        "course_offering_terms": {},
         "course_previous_grades": [],
-        "course_credit": 0
+        "course_credit": 0,
+        "course_link": link
     }
     # Find the course title by ID
     course_code_title_credit = driver.find_element(By.ID, "page-title").text.strip()
     l_course_code_title_credit = course_code_title_credit.split(" ") # ["COMP", "302", "r", "e", "s", "t"]
-    course_code = ' '.join(map(str, l_course_code_title_credit[:2])) # "COMP 302"
+    course_code = ''.join(map(str, l_course_code_title_credit[:2])) # "COMP 302"
     course_title = ' '.join(map(str, l_course_code_title_credit[2:-2])) # "r e s t"
-    if "(" in l_course_code_title_credit[-2][1]:
+    if "(" in l_course_code_title_credit[-2]:
         course_credit = l_course_code_title_credit[-2][1]
     else:
         course_credit = None
@@ -271,17 +199,6 @@ def get_course_info(course_code):
     # Find the course description by tag name
     course_description = course_description.find_element(By.TAG_NAME, "p").text
     course_json['course_description'] = course_description
-    # Find the instructors by class name
-    catalog_instructors = driver.find_element(By.CLASS_NAME, "catalog-instructors")
-    instructors = catalog_instructors.find_elements(By.CLASS_NAME, "mcen-profDiv")
-    substring_to_remove = "GoogleMercury"
-    for i in range(len(instructors)):
-        course_instructor = instructors[i].text
-        course_instructor = course_instructor.replace(substring_to_remove, "")
-        if i == 0:
-            course_json['instructors'] = [course_instructor]
-        else:
-            course_json['instructors'].append(course_instructor)
 
     # Find the course prerequisites, Corequisite, Restriction by Class
     try:
@@ -316,15 +233,45 @@ def get_course_info(course_code):
                 else:
                     continue
     except Exception as e:
-        print(f"An exception occurred: {e}")
         print("No prerequisites, corequisites, or restrictions")
     try:
         # Find the course offering terms by Class
-        course_offering_terms = driver.find_element(By.CLASS_NAME, "catalog-terms").text
-        course_json["course_offering_terms"] = course_offering_terms
+        course_offering_terms_str = driver.find_element(By.CLASS_NAME, "catalog-terms").text
+        # check if its not scheduled
+        if "not scheduled" in course_offering_terms_str:
+            course_offering_terms = None
+        else:
+            # get rid of Terms: from ex) "Terms: Fall 2023, Winter 2024"
+            course_offering_terms_str = course_offering_terms_str[7:]
+            course_offering_terms = course_offering_terms_str.split(", ")
+            for course_offering_term in course_offering_terms:
+                # initialize list for each term
+                course_json["course_offering_terms"][course_offering_term] = []
     except Exception as e:
-        print(f"An exception occurred: {e}")
         print("No course offering terms")
+    
+    # Find the instructors by class name
+    catalog_instructors = driver.find_element(By.CLASS_NAME, "catalog-instructors")
+    instructors = catalog_instructors.find_elements(By.CLASS_NAME, "mcen-profDiv")
+    substring_to_remove = "GoogleMercury"
+    # TODO: for "AAAA-100", it proudces many duplicates
+    for i in range(len(instructors)):
+        course_instructor = instructors[i].text
+        course_instructor = course_instructor.replace(substring_to_remove, "")
+        # Find which semesters the instructor teaches the course by CSS selector
+        term_elements = catalog_instructors.find_elements(By.CSS_SELECTOR, '.mcen-termDiv.tooltip')
+        for term_element in term_elements:
+            term_src_imag_url = term_element.find_element(By.TAG_NAME, "img").get_attribute("src")
+            term = term_src_imag_url.split("/")[-1][:-4]
+            for course_offering_term in course_json['course_offering_terms']:
+                if term in course_offering_term.lower():
+                    course_json['course_offering_terms'][course_offering_term].append(course_instructor)
+                    break
+        if i == 0:
+            course_json['instructors'] = [course_instructor]
+        else:
+            course_json['instructors'].append(course_instructor)
+
     try:
         # Find the course previous grades table by Id
         course_previous_grades_table = driver.find_element(By.ID, "mcen-class-averages-content-right-table")
@@ -340,24 +287,29 @@ def get_course_info(course_code):
             else:
                 course_json['course_previous_grades'].append(course_previous_grade)
     except Exception as e:
-        print(f"An exception occurred: {e}")
         print("No course previous grades")
     # Keep the browser open until user input
     # input("Press Enter to close the browser...")
     # Close the browser
     driver.quit()
-    print(course_json)
+    #print(course_json)
     return course_json
 
-def get_instructor_rating(name):
+def get_instructor_info(name):
     """this returns -1 if the instructor is not found in the website
     """
+    instructor_json = {
+        "rating": None,
+        "would_take_again": None,
+        "level_of_difficulty": None,
+        "link": None
+    }
     desired_user_agent = "https://www.whatismybrowser.com/detect/what-is-my-user-agent"
     # Create a ChromeOptions instance and set the user agent
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"user-agent={desired_user_agent}")
     chrome_options.add_argument("--disable-popup-blocking")
-    #chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--headless")
     driver = webdriver.Chrome(options=chrome_options)
     # Navigate to the website
     print("processing...")
@@ -374,7 +326,6 @@ def get_instructor_rating(name):
         close_button2.click()
         print("close button clicked")
     except Exception as e:
-        print(f"An exception occurred: {e}")
         print("No pop-up window")
 
     # find the search input field by class name
@@ -382,71 +333,79 @@ def get_instructor_rating(name):
     search_input_e = search_input_e.find_element(By.CLASS_NAME, "Search__DebouncedSearchInput-sc-10lefvq-1")
     search_input_e.send_keys(name)
     search_input_e.send_keys(Keys.RETURN)
-    print("found instructor")
-    input("Press Enter to continue...")
+    print("found instructor", name)
+    WebDriverWait(driver, 5)
+    # input("Press Enter to continue...")
     # check if the instructor is found
     try:
+        
         # get the first instructor if multiple show up
-        instructor_e = driver.find_elements(By.CLASS_NAME, "TeacherCard__StyledTeacherCard-syjs0d-0")[0]
+        #instructor_e = driver.find_elements(By.CLASS_NAME, "TeacherCard__StyledTeacherCard-syjs0d-0")[0]
+        instructor_e = WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.CLASS_NAME, "TeacherCard__StyledTeacherCard-syjs0d-0")))
+        print(instructor_e)
         print("instructor page found")
+        # get href value from a tag element
+        link = instructor_e.get_attribute("href")
         rating= instructor_e.find_element(By.CLASS_NAME, "CardNumRating__CardNumRatingNumber-sc-17t4b9u-2").text
         would_take_again = instructor_e.find_elements(By.CLASS_NAME, "CardFeedback__CardFeedbackNumber-lq6nix-2")[0].text
         level_of_difficulty = instructor_e.find_elements(By.CLASS_NAME, "CardFeedback__CardFeedbackNumber-lq6nix-2")[1].text
-        print(rating, would_take_again, level_of_difficulty)
-        #instructor_e[0].click()
-        # TODO: We don't actually need to click
+        instructor_json["rating"] = rating
+        instructor_json["would_take_again"] = would_take_again
+        instructor_json["level_of_difficulty"] = level_of_difficulty
+        instructor_json["link"] = link
     except Exception as e:
         print("instructor page not found")
         driver.quit()
         return -1
-    # rating = float(driver.find_element(By.CLASS_NAME, "RatingValue__Numerator-qw8sqy-2").text)
-    # TODO: scrape would take again, level of difficulty AND change the model schema.
-    print("rating is...", rating)
     driver.quit()
-    return rating
+    return instructor_json
 
 def prepopulate_database(request):
     """this function populates the database with courses and instructors
     """
-    course_code_json_file = '/Users/jaewonmoon/Desktop/projects/ClassWise/backend/ClassWise/course_codes.json'
-    # open the json file
+    course_code_json_file = os.path.join(base_dir,'ClassWise','course_codes.json')    # open the json file
     with open(course_code_json_file) as f:
         data = json.load(f)
     # iterate through the json file to get course code
     for course in data:
         course_code = data[course]
-        # get course information
-        d_course_info = get_course_info(course_code)
+        # add - in between course code and number
+        course_code_url = course_code[:4] + "-" + course_code[4:]
         # check if there already exists a course with the same course code
         # if so, do nothing
         if Course.objects.filter(course_code=course_code).exists():
+            print("skipping ", course_code)
             continue
         # if not, create a new course object based on the course code
-        course = Course.objects.create(course_code=d_course_info['course_code'],
-                                        course_name=d_course_info['course_title'], 
-                                        course_description=d_course_info['course_description'], 
-                                        course_restrictions=d_course_info['course_restriction'], 
-                                        course_offering_terms=d_course_info['course_offering_terms'], 
-                                        course_previous_grades=d_course_info['course_previous_grades'],
-                                        course_credit=d_course_info['course_credit'])
-        # create a new instructor object based on the instructor name
-        for instructor_name in d_course_info['instructors']:
-            # check if there already exists an instructor with the same name
-            if Instructor.objects.filter(instructor_name=instructor_name).exists():
-                continue
-            # if not, create a new instructor object based on the instructor name
-            else:
-                instructor = Instructor.objects.create(instructor_name=instructor_name)
-                instructor_rating = get_instructor_rating(instructor_name)
-                if instructor_rating != -1:
-                    instructor.instructor_rating = instructor_rating
-            instructor.save()
-            course.course_instructors.add(instructor)
-  
-        # filter course objects that have the same course code
-        prerequisites = Course.objects.filter(course_code__in=d_course_info['course_prerequisites'])
-        corequisites = Course.objects.filter(course_code__in=d_course_info['course_corequisites'])
-
-        course.course_prerequisites.set(prerequisites)
-        course.course_corequisites.set(corequisites)
-        course.save()
+        else:
+            # get course information
+            d_course_info = get_course_info(course_code_url)
+            print("creating ", course_code)
+            course = Course.objects.create(course_code=d_course_info['course_code'],
+                                            course_name=d_course_info['course_title'], 
+                                            course_description=d_course_info['course_description'], 
+                                            course_restrictions=d_course_info['course_restriction'], 
+                                            course_prerequisites=d_course_info['course_prerequisites'],
+                                            course_corequisites=d_course_info['course_corequisites'],
+                                            course_offering_terms=d_course_info['course_offering_terms'], 
+                                            course_previous_grades=d_course_info['course_previous_grades'],
+                                            course_credit=d_course_info['course_credit'],
+                                            course_link=d_course_info['course_link']
+                                            )
+            # create a new instructor object based on the instructor name
+            for instructor_name in d_course_info['instructors']:
+                # check if there already exists an instructor with the same name
+                if Instructor.objects.filter(instructor_name=instructor_name).exists():
+                    continue
+                # if not, create a new instructor object based on the instructor name
+                else:
+                    instructor = Instructor.objects.create(instructor_name=instructor_name)
+                    instructor_info = get_instructor_info(instructor_name)
+                    if instructor_info != -1:
+                        instructor.instructor_rating = instructor_info["rating"]
+                        instructor.would_take_again = instructor_info["would_take_again"]
+                        instructor.level_of_difficulty = instructor_info["level_of_difficulty"]
+                        instructor.link = instructor_info["link"]
+                instructor.save()
+                course.course_instructors.add(instructor)
+            course.save()

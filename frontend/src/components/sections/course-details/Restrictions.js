@@ -1,6 +1,6 @@
 import Chip from "@mui/material/Chip";
 
-function Restrictions() {
+function Restrictions({ courseRestrictions }) {
 	return (
 		<div className="course-details__restrictions">
 			<h4
@@ -10,12 +10,7 @@ function Restrictions() {
 			>
 				Restriction(s)
 			</h4>
-			<p>Not open to students who have taken or are taking:</p>
-			<div className="chip-container">
-				<Chip label="COMP 451" />
-				<Chip label="ECSE 551" />
-				<Chip label="PSYC 560" />
-			</div>
+			<p>{courseRestrictions ? courseRestrictions : "None"}</p>
 		</div>
 	);
 }

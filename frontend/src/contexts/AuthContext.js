@@ -109,13 +109,13 @@ export const AuthProvider = ({ children }) => {
 	};
 
 	useEffect(() => {
-		if (authTokens) {
-			const decoded = jwtDecode(authTokens.access);
-			const currentTime = Date.now() / 1000;
-			if (decoded.exp < currentTime) {
+		let timer = 1000 * 60 * 210;
+		let interval = setInterval(() => {
+			if (authTokens) {
 				updateToken();
 			}
-		}
+		}, timer);
+		return () => clearInterval(interval);
 	}, [authTokens]);
 
 	const contextData = {

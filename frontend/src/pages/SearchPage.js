@@ -16,7 +16,6 @@ function SearchPage() {
 			const selectedCourseId = courses.find(
 				(course) => course.name === value
 			);
-
 			navigate("/class/" + selectedCourseId.id);
 		}
 	};

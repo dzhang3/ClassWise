@@ -1,46 +1,26 @@
 import InstructorSemester from "./InstructorSemester";
-export default function InstructorInfo() {
-	const semesters = [
-		{
-			name: "Fall 2020",
-			profs: [
-				{
-					name: "Reihaneh Rabbany",
-					rating: 4.8,
-					difficulty: 3.2,
-					wouldTakeAgain: "90%",
-					tags: ["knowledgeable", "engaging", "approachable"],
-				},
-				{
-					name: "Isabeau Prémont-Schwarz",
-					rating: 3.6,
-					difficulty: 2.7,
-					wouldTakeAgain: "80%",
-					tags: ["experienced", "helpful", "organized"],
-				},
-			],
-		},
-		{
-			name: "Spring 2020",
-			profs: [
-				{
-					name: "Isabeau Prémont-Schwarz",
-					rating: 3.6,
-					difficulty: 2.7,
-					wouldTakeAgain: "80%",
-					tags: ["experienced", "helpful", "organized"],
-				},
-			],
-		},
-	];
+
+export default function InstructorInfo({ courseTerms }) {
+	console.log(courseTerms);
+
+	// Check if courseTerms is not null/undefined and has keys
+	const hasCourseTerms = courseTerms && Object.keys(courseTerms).length > 0;
 
 	return (
 		<div className="instructor-info">
 			<h3>Instructor(s)</h3>
 			<div className="instructors">
-				{semesters.map((semester) => (
-					<InstructorSemester semester={semester} />
-				))}
+				{hasCourseTerms ? (
+					Object.keys(courseTerms).map((semester) => (
+						<InstructorSemester
+							key={semester} // Assuming semester is unique and can be used as a key
+							semester={semester}
+							profs={courseTerms[semester]}
+						/>
+					))
+				) : (
+					<div>No instructor information available</div>
+				)}
 			</div>
 		</div>
 	);

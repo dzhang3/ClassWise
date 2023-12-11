@@ -8,9 +8,20 @@ export default function InstructorRMP({
 	rating,
 	difficulty,
 	wouldTakeAgain,
-	tags,
+	link,
 }) {
-	return (
+	const handleClick = () => {
+		if (link) {
+			window.open(link);
+		}
+	};
+	const handleClick2 = (newLink) => {
+		if (newLink) {
+			window.open(newLink);
+		}
+	};
+
+	return link ? (
 		<div className="instructor-rmp">
 			<div className="instructor-rmp__header">
 				<div className="text">
@@ -22,6 +33,7 @@ export default function InstructorRMP({
 				<Button
 					variant="outlined"
 					endIcon={<ChevronRightIcon />}
+					onClick={handleClick}
 					style={{ height: "40px" }}
 				>
 					RATE MY PROFESSOR
@@ -37,9 +49,26 @@ export default function InstructorRMP({
 					marginBottom: "10px",
 				}}
 			/>
-			<div className="chip-container">
-				{tags ? tags.map((tag) => <Chip label={tag} />) : null}
+		</div>
+	) : (
+		<div className="instructor-rmp">
+			<div className="instructor-rmp__header">
+				<div className="text">No Rate My Professor found.</div>
+				<Button
+					variant="outlined"
+					endIcon={<ChevronRightIcon />}
+					onClick={() =>
+						handleClick2(
+							"https://www.ratemyprofessors.com/search/professors/1439?q=" +
+								name
+						)
+					}
+					style={{ height: "40px" }}
+				>
+					SEARCH RATE MY PROFESSOR
+				</Button>
 			</div>
+			<div className="instructor-name">{name}</div>
 		</div>
 	);
 }
