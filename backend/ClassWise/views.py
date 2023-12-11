@@ -55,9 +55,9 @@ def course_detail(request, course_code, format=None):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
-def instructor_detail(request, pk, format=None):
+def instructor_detail(request, instructor_name, format=None):
     if request.method == 'GET':
-        instructor = get_object_or_404(Instructor, pk=pk)
+        instructor = get_object_or_404(Instructor, instructor_name=instructor_name)
         serializer = InstructorSerializer(instructor)
         return Response(serializer.data)
     else:
@@ -65,30 +65,7 @@ def instructor_detail(request, pk, format=None):
 
 def get_course_info(course_code):
     """returns a json object containing course information
-    json object will look like this
-    {
-        "course_code": "COMP 302",
-        "course_name": "Programming Languages and Paradigms",
-        "course_description": "This course is an introduction to the theory of computation. Topics include finite automata and regular languages, pushdown automata and context-free languages, Turing machines, the Chomsky hierarchy, decidability, and the halting problem.",
-        "instructors": [
-            "Jacob Errington",
-            "Max Kopinsky"
-        ],
-        "course_prerequisites": [
-            "COMP 250",
-            "MATH 240"
-        ],
-        "course_corequisites": [
-        ],
-        "course_restriction": "Not open to students who have taken or are taking COMP 250 or COMP 251.",
-        "course_offering_terms": "Winter 2023",
-        "course_previous_grades": [
-            "2023 Winter: A-",
-            "2022 Winter: A",
-            "2021 Winter: A-",
-            "2020 Winter: A",
-        ]
-    }
+    >>> get_course_info("COMP-302")
     """
     print("getting", course_code, "course info...")
     desired_user_agent = "https://www.whatismybrowser.com/detect/what-is-my-user-agent"
@@ -102,39 +79,41 @@ def get_course_info(course_code):
     #chrome_options.add_argument("--headless")
     driver = webdriver.Chrome(options=chrome_options)
     # Navigate to the website
-    driver.get("https://www.mcgill.ca/study/2023-2024/courses/search")
+    link = "https://www.mcgill.ca/study/2023-2024/courses/"+course_code
+    driver.get(link)
 
-    # Find the search input field by ID and input "COMP512"
-    search_input = driver.find_element(By.ID, "edit-keys")
-    search_input.send_keys(course_code)
+    # # Find the search input field by ID and input "COMP512"
+    # search_input = driver.find_element(By.ID, "edit-keys")
+    # search_input.send_keys(course_code)
     
-    # Find the submit button by ID and click it
-    submit_button = driver.find_element(By.ID, "edit-submit")
-    submit_button.click()
+    # # Find the submit button by ID and click it
+    # submit_button = driver.find_element(By.ID, "edit-submit")
+    # submit_button.click()
 
-    # Wait for the page to load (you may need to adjust the wait time)
-    driver.implicitly_wait(10)
+    # # Wait for the page to load (you may need to adjust the wait time)
+    # driver.implicitly_wait(10)
 
-    # Find the first row by class name
-    first_row = driver.find_element(By.CLASS_NAME, "views-row-1")
+    # # Find the first row by class name
+    # first_row = driver.find_element(By.CLASS_NAME, "views-row-1")
 
-    # Find the link in the first row by tag name
-    link = first_row.find_element(By.TAG_NAME, "a")
+    # # Find the link in the first row by tag name
+    # link = first_row.find_element(By.TAG_NAME, "a")
 
-    # Click the link
-    link.click()
+    # # Click the link
+    # link.click()
 
     course_json = {
         "course_code": "",
         "course_title": "",
         "course_description": "",
         "instructors": [],
-        "course_prerequisites": [],
-        "course_corequisites": [],
-        "course_restriction": "",
-        "course_offering_terms": "",
+        "course_prerequisites": None, # []
+        "course_corequisites": None, # []
+        "course_restriction": None, # ""
+        "course_offering_terms": {},
         "course_previous_grades": [],
-        "course_credit": 0
+        "course_credit": 0,
+        "course_link": link
     }
     # Find the course title by ID
     course_code_title_credit = driver.find_element(By.ID, "page-title").text.strip()
@@ -153,17 +132,6 @@ def get_course_info(course_code):
     # Find the course description by tag name
     course_description = course_description.find_element(By.TAG_NAME, "p").text
     course_json['course_description'] = course_description
-    # Find the instructors by class name
-    catalog_instructors = driver.find_element(By.CLASS_NAME, "catalog-instructors")
-    instructors = catalog_instructors.find_elements(By.CLASS_NAME, "mcen-profDiv")
-    substring_to_remove = "GoogleMercury"
-    for i in range(len(instructors)):
-        course_instructor = instructors[i].text
-        course_instructor = course_instructor.replace(substring_to_remove, "")
-        if i == 0:
-            course_json['instructors'] = [course_instructor]
-        else:
-            course_json['instructors'].append(course_instructor)
 
     # Find the course prerequisites, Corequisite, Restriction by Class
     try:
@@ -198,15 +166,45 @@ def get_course_info(course_code):
                 else:
                     continue
     except Exception as e:
-        print(f"An exception occurred: {e}")
         print("No prerequisites, corequisites, or restrictions")
     try:
         # Find the course offering terms by Class
-        course_offering_terms = driver.find_element(By.CLASS_NAME, "catalog-terms").text
-        course_json["course_offering_terms"] = course_offering_terms
+        course_offering_terms_str = driver.find_element(By.CLASS_NAME, "catalog-terms").text
+        # check if its not scheduled
+        if "not scheduled" in course_offering_terms_str:
+            course_offering_terms = None
+        else:
+            # get rid of Terms: from ex) "Terms: Fall 2023, Winter 2024"
+            course_offering_terms_str = course_offering_terms_str[7:]
+            course_offering_terms = course_offering_terms_str.split(", ")
+            for course_offering_term in course_offering_terms:
+                # initialize list for each term
+                course_json["course_offering_terms"][course_offering_term] = []
     except Exception as e:
-        print(f"An exception occurred: {e}")
         print("No course offering terms")
+    
+    # Find the instructors by class name
+    catalog_instructors = driver.find_element(By.CLASS_NAME, "catalog-instructors")
+    instructors = catalog_instructors.find_elements(By.CLASS_NAME, "mcen-profDiv")
+    substring_to_remove = "GoogleMercury"
+    # TODO: for "AAAA-100", it proudces many duplicates
+    for i in range(len(instructors)):
+        course_instructor = instructors[i].text
+        course_instructor = course_instructor.replace(substring_to_remove, "")
+        # Find which semesters the instructor teaches the course by CSS selector
+        term_elements = catalog_instructors.find_elements(By.CSS_SELECTOR, '.mcen-termDiv.tooltip')
+        for term_element in term_elements:
+            term_src_imag_url = term_element.find_element(By.TAG_NAME, "img").get_attribute("src")
+            term = term_src_imag_url.split("/")[-1][:-4]
+            for course_offering_term in course_json['course_offering_terms']:
+                if term in course_offering_term.lower():
+                    course_json['course_offering_terms'][course_offering_term].append(course_instructor)
+                    break
+        if i == 0:
+            course_json['instructors'] = [course_instructor]
+        else:
+            course_json['instructors'].append(course_instructor)
+
     try:
         # Find the course previous grades table by Id
         course_previous_grades_table = driver.find_element(By.ID, "mcen-class-averages-content-right-table")
@@ -222,7 +220,6 @@ def get_course_info(course_code):
             else:
                 course_json['course_previous_grades'].append(course_previous_grade)
     except Exception as e:
-        print(f"An exception occurred: {e}")
         print("No course previous grades")
     # Keep the browser open until user input
     # input("Press Enter to close the browser...")
@@ -262,7 +259,6 @@ def get_instructor_info(name):
         close_button2.click()
         print("close button clicked")
     except Exception as e:
-        print(f"An exception occurred: {e}")
         print("No pop-up window")
 
     # find the search input field by class name
@@ -275,10 +271,12 @@ def get_instructor_info(name):
     # input("Press Enter to continue...")
     # check if the instructor is found
     try:
+        
         # get the first instructor if multiple show up
-        element = WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.CLASS_NAME, "TeacherCard__StyledTeacherCard-syjs0d-0")))
-        instructor_e = driver.find_elements(By.CLASS_NAME, "TeacherCard__StyledTeacherCard-syjs0d-0")[0]
-        print("instructor page found", name)
+        #instructor_e = driver.find_elements(By.CLASS_NAME, "TeacherCard__StyledTeacherCard-syjs0d-0")[0]
+        instructor_e = WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.CLASS_NAME, "TeacherCard__StyledTeacherCard-syjs0d-0")))
+        print(instructor_e)
+        print("instructor page found")
         # get href value from a tag element
         link = instructor_e.get_attribute("href")
         rating= instructor_e.find_element(By.CLASS_NAME, "CardNumRating__CardNumRatingNumber-sc-17t4b9u-2").text
@@ -304,6 +302,8 @@ def prepopulate_database(request):
     # iterate through the json file to get course code
     for course in data:
         course_code = data[course]
+        # add - in between course code and number
+        course_code_url = course_code[:4] + "-" + course_code[4:]
         # check if there already exists a course with the same course code
         # if so, do nothing
         if Course.objects.filter(course_code=course_code).exists():
@@ -312,7 +312,7 @@ def prepopulate_database(request):
         # if not, create a new course object based on the course code
         else:
             # get course information
-            d_course_info = get_course_info(course_code)
+            d_course_info = get_course_info(course_code_url)
             print("creating ", course_code)
             course = Course.objects.create(course_code=d_course_info['course_code'],
                                             course_name=d_course_info['course_title'], 
