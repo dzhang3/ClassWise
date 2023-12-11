@@ -29,9 +29,6 @@ function App() {
 					<Route path="/class/:id" element={<PrivateRoute />}>
 						<Route path="/class/:id" element={<ClassPage />} />
 					</Route>
-					<Route path="/class" element={<PrivateRoute />}>
-						<Route path="/class" element={<ClassPage />} />
-					</Route>
 					<Route path="/login" element={<LoginPage />} />
 					<Route path="/register" element={<RegisterPage />} />
 				</Routes>
