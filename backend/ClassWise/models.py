@@ -28,11 +28,10 @@ class Course(models.Model):
     course_code = models.CharField(max_length=200, null=False)
     course_description = models.TextField(null=False)
     course_instructors = models.ManyToManyField(Instructor)
-    course_prerequisites = models.ManyToManyField('self', symmetrical=False, related_name='prerequisite_of')
-    course_corequisites = models.ManyToManyField('self', symmetrical=False, related_name='corequisite_of')
+    course_prerequisites = models.CharField(max_length=200, null=True)
+    course_corequisites = models.CharField(max_length=200, null=True)
     course_restrictions = models.TextField(null=True)
     course_offering_terms = models.CharField(max_length=200, null=True)
-    # TODO: course_previous_grades = ArrayField(models.CharField(max_length=100), null=True)
     course_previous_grades = models.TextField(null=True)
     course_credit = models.PositiveIntegerField(null=True)
     def __str__(self):
