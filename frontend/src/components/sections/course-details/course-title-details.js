@@ -1,14 +1,29 @@
 import Chip from "@mui/material/Chip";
 import Button from "@mui/material/Button";
 
-export default function CourseTitleDetails() {
+export default function CourseTitleDetails({
+	courseId,
+	courseName,
+	courseCredits,
+	courseLink,
+}) {
+	const handleClick = () => {
+		// Find the selected course ID
+		if (courseId !== "") {
+			window.open(courseLink);
+		}
+	};
 	return (
 		<section className="course-title-details" style={{ display: "flex" }}>
 			<div className="course-title-details-left">
-				<div className="top-text">COMP 551 | 3 CREDITS</div>
-				<div className="middle-text">Applied Machine Learning</div>
+				{courseId && courseCredits ? (
+					<div className="top-text">
+						{courseId} | {courseCredits} CREDITS
+					</div>
+				) : null}
+				<div className="middle-text">{courseName}</div>
 				<div className="chip-container">
-					<Chip label="COMP 551" />
+					<Chip label={courseId} />
 				</div>
 			</div>
 			<div
@@ -18,9 +33,13 @@ export default function CourseTitleDetails() {
 					justifyContent: "center",
 				}}
 			>
-				{/* <Button variant="contained" style={{ height: "40px" }}>
-					Add to Schedule +
-				</Button> */}
+				<Button
+					variant="contained"
+					onClick={handleClick}
+					style={{ height: "40px" }}
+				>
+					More Info
+				</Button>
 			</div>
 		</section>
 	);

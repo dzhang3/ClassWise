@@ -43,6 +43,7 @@ CORS_ALLOW_HEADERS = [
     'authorization',
     'postman-token',
 ]
+# CORS_ALLOW_ALL_HEADERS = True
 
 # Application definition
 INSTALLED_APPS = [
@@ -59,7 +60,7 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 # consider uncommment this if connecting frontend and backend is not working
-#CORS_ORIGIN_ALLOW_ALL = True
+# CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -166,7 +167,7 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
     'AUTH_HEADER_TYPES': ('Bearer',),
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=90),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=240),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'AUTH_TOKEN_CLASSES': (
         'rest_framework_simplejwt.tokens.AccessToken',

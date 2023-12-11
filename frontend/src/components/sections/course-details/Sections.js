@@ -1,4 +1,4 @@
-function Averages() {
+function Averages({ courseAverages }) {
 	return (
 		<div className="sections">
 			<h4>Class Averages</h4>
@@ -10,18 +10,14 @@ function Averages() {
 					</tr>
 				</thead>
 				<tbody>
-					<tr>
-						<td>2023 Winter</td>
-						<td>A-</td>
-					</tr>
-					<tr>
-						<td>2022 Fall</td>
-						<td>B+</td>
-					</tr>
-					<tr>
-						<td>2022 Winter</td>
-						<td>A</td>
-					</tr>
+					{Object.keys(courseAverages).map((term) => {
+						return (
+							<tr>
+								<td>{term}</td>
+								<td>{courseAverages[term]}</td>
+							</tr>
+						);
+					})}
 				</tbody>
 			</table>
 		</div>

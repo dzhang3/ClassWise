@@ -7,7 +7,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 class Comment(models.Model):
     comment_text = models.CharField(max_length=200, null=True)
     comment_date = models.DateTimeField(auto_now_add=True)
-    # TODO: on_delete?
     comment_user = models.ForeignKey("UserAccount", on_delete=models.CASCADE, null=True)
     comment_course = models.OneToOneField('Course', on_delete=models.CASCADE, null=True)
     comment_instructor = models.CharField(max_length=200, null=True)
@@ -31,8 +30,8 @@ class Course(models.Model):
     course_code = models.CharField(max_length=200, null=False)
     course_description = models.TextField(null=False)
     course_instructors = models.ManyToManyField(Instructor)
-    course_prerequisites = models.CharField(max_length=200, null=True)
-    course_corequisites = models.CharField(max_length=200, null=True)
+    course_prerequisites = models.CharField(max_length=500, null=True)
+    course_corequisites = models.CharField(max_length=500, null=True)
     course_restrictions = models.TextField(null=True)
     course_offering_terms = models.JSONField(null=True)
     course_previous_grades = models.TextField(null=True)
