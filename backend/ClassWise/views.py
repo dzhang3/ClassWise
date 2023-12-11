@@ -1,66 +1,23 @@
 import json
 import os
 from django.conf import settings
-from django.shortcuts import get_object_or_404, render, redirect
-from django.http import HttpResponse
-from django.forms import inlineformset_factory
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import get_object_or_404, render
 
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.parsers import JSONParser
 from .models import Course, Instructor
-from .serializers import CourseSerializer
+from .serializers import CourseSerializer, InstructorSerializer
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
-from rest_framework.reverse import reverse # to return fully-qualified URLs; 
 # converting generic views to function-based views
 from rest_framework import status
 # Create your views here.
-from .forms import CourseForm, CreateUserForm
-#from .filters import OrderFilter
-
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 base_dir = settings.BASE_DIR
-
-def registrationPage(request):
-    form = CreateUserForm()
-    if request.method == 'POST':
-        form = CreateUserForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request,'Account was created for ' + form.cleaned_data.get('username'))
-            return redirect('login')
-    context = {'form':form}
-    return render(request, 'ClassWise/register.html', context)
-
-def loginPage(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            print("Login successful")
-            return redirect('home')
-        else:
-            print("Login failed")
-            messages.info(request, 'Username or password is incorrect')
-    context = {}
-    return render(request, 'ClassWise/login.html', context)
-
-def logoutUser(request):
-    logout(request)
-    return redirect('login')
 
 #@api_view(['GET', 'POST'])
 @authentication_classes([TokenAuthentication])
@@ -103,9 +60,10 @@ def home(request):
                 instructor = Instructor.objects.create(instructor_name=instructor_name)
                 instructor_info = get_instructor_info(instructor_name)
                 if instructor_info != -1:
-                    instructor.instructor_rating = instructor_info["instructor_rating"]
+                    instructor.instructor_rating = instructor_info["rating"]
                     instructor.would_take_again = instructor_info["would_take_again"]
                     instructor.level_of_difficulty = instructor_info["level_of_difficulty"]
+                    instructor.link = instructor_info["link"]
             instructor.save()
             course.course_instructors.add(instructor)
   
@@ -153,10 +111,19 @@ def course_detail(request, course_code, format=None):
         return Response(serializer.data)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 @api_view(['GET'])
-def test_view(request):
-    return Response({"message": "This is a test."})
+def instructor_detail(request, pk, format=None):
+    if request.method == 'GET':
+        instructor = get_object_or_404(Instructor, pk=pk)
+        serializer = InstructorSerializer(instructor)
+        return Response(serializer.data)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 def get_course_info(course_code):
     """returns a json object containing course information
@@ -330,9 +297,10 @@ def get_instructor_info(name):
     """this returns -1 if the instructor is not found in the website
     """
     instructor_json = {
-        "rating": 0.0,
-        "would_take_again": 0,
-        "level_of_difficulty": 0.0
+        "rating": None,
+        "would_take_again": None,
+        "level_of_difficulty": None,
+        "link": None
     }
     desired_user_agent = "https://www.whatismybrowser.com/detect/what-is-my-user-agent"
     # Create a ChromeOptions instance and set the user agent
@@ -371,12 +339,15 @@ def get_instructor_info(name):
         # get the first instructor if multiple show up
         instructor_e = driver.find_elements(By.CLASS_NAME, "TeacherCard__StyledTeacherCard-syjs0d-0")[0]
         print("instructor page found")
+        # get href value from a tag element
+        link = instructor_e.get_attribute("href")
         rating= instructor_e.find_element(By.CLASS_NAME, "CardNumRating__CardNumRatingNumber-sc-17t4b9u-2").text
         would_take_again = instructor_e.find_elements(By.CLASS_NAME, "CardFeedback__CardFeedbackNumber-lq6nix-2")[0].text
         level_of_difficulty = instructor_e.find_elements(By.CLASS_NAME, "CardFeedback__CardFeedbackNumber-lq6nix-2")[1].text
         instructor_json["rating"] = rating
         instructor_json["would_take_again"] = would_take_again
         instructor_json["level_of_difficulty"] = level_of_difficulty
+        instructor_json["link"] = link
     except Exception as e:
         print("instructor page not found")
         driver.quit()
@@ -420,9 +391,10 @@ def prepopulate_database(request):
                     instructor = Instructor.objects.create(instructor_name=instructor_name)
                     instructor_info = get_instructor_info(instructor_name)
                     if instructor_info != -1:
-                        instructor.instructor_rating = instructor_info["instructor_rating"]
+                        instructor.instructor_rating = instructor_info["rating"]
                         instructor.would_take_again = instructor_info["would_take_again"]
                         instructor.level_of_difficulty = instructor_info["level_of_difficulty"]
+                        instructor.link = instructor_info["link"]
                 instructor.save()
                 course.course_instructors.add(instructor)
     
