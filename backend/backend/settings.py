@@ -39,7 +39,10 @@ CORS_ALLOW_HEADERS = [
     'access-control-allow-origin',
     'access-control-allow-headers',
     'content-type',
+    'authorization',
+    'postman-token',
 ]
+# CORS_ALLOW_ALL_HEADERS = True
 
 # Application definition
 
@@ -57,7 +60,7 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 # consider uncommment this if connecting frontend and backend is not working
-#CORS_ORIGIN_ALLOW_ALL = True
+# CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
