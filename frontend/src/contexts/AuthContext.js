@@ -3,6 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
+const backendUrl = process.env.baackend_url || "http://localhost:8000";
 
 export default AuthContext;
 
@@ -21,7 +22,7 @@ export const AuthProvider = ({ children }) => {
 	);
 
 	const createUser = async (userData) => {
-		const response = await fetch("http://localhost:8000/auth/users/", {
+		const response = await fetch(`${backendUrl}/auth/users/`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -49,7 +50,7 @@ export const AuthProvider = ({ children }) => {
 	};
 
 	const loginUser = async (userData) => {
-		const response = await fetch("http://localhost:8000/auth/jwt/create/", {
+		const response = await fetch(`${backendUrl}/auth/jwt/create/`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -82,7 +83,7 @@ export const AuthProvider = ({ children }) => {
 
 	const updateToken = async () => {
 		console.log("Updating token");
-		let response = await fetch("http://localhost:8000/auth/jwt/refresh", {
+		let response = await fetch(`${backendUrl}/auth/jwt/refresh`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
