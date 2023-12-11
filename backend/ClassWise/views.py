@@ -19,67 +19,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 base_dir = settings.BASE_DIR
 
-#@api_view(['GET', 'POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-# TODO: change url like /search/<str:course_code>/ and add parameter course_code to the function
-def home(request):
-    # TODO: decide if we will this as POST Method
-    if request.method == "POST":
-        #print(request.POST)
-        course_code = request.POST.get('course_code')
-        d_course_info = get_course_info(course_code)
-        # check if there already exists a course with the same course code
-        # if so, update the course model with the updated data
-
-        if Course.objects.filter(course_code=course_code).exists():
-            course = Course.objects.get(course_code=course_code)
-            course.course_code = d_course_info['course_code']
-            course.course_name = d_course_info['course_title']
-            course.course_description = d_course_info['course_description']
-            course.course_restrictions = d_course_info['course_restriction']
-            course.course_offering_terms = d_course_info['course_offering_terms']
-            course.course_previous_grades = d_course_info['course_previous_grades']
-            course.course_credit = d_course_info['course_credit']
-        else:
-            # if not, create a new course object based on the course code
-            course = Course.objects.create(course_code=d_course_info['course_code'],
-                                            course_name=d_course_info['course_title'], 
-                                            course_description=d_course_info['course_description'], 
-                                            course_restrictions=d_course_info['course_restriction'], 
-                                            course_offering_terms=d_course_info['course_offering_terms'], 
-                                            course_previous_grades=d_course_info['course_previous_grades'],
-                                            course_credit=d_course_info['course_credit'])
-        # create a new instructor object based on the instructor name
-        for instructor_name in d_course_info['instructors']:
-            # check if there already exists an instructor with the same name
-            if Instructor.objects.filter(instructor_name=instructor_name).exists():
-                continue
-            # if not, create a new instructor object based on the instructor name
-            else:
-                instructor = Instructor.objects.create(instructor_name=instructor_name)
-                instructor_info = get_instructor_info(instructor_name)
-                if instructor_info != -1:
-                    instructor.instructor_rating = instructor_info["rating"]
-                    instructor.would_take_again = instructor_info["would_take_again"]
-                    instructor.level_of_difficulty = instructor_info["level_of_difficulty"]
-                    instructor.link = instructor_info["link"]
-            instructor.save()
-            course.course_instructors.add(instructor)
-  
-        # filter course objects that have the same course code
-        prerequisites = Course.objects.filter(course_code__in=d_course_info['course_prerequisites'])
-        corequisites = Course.objects.filter(course_code__in=d_course_info['course_corequisites'])
-
-        course.course_prerequisites.set(prerequisites)
-        course.course_corequisites.set(corequisites)
-        course.save()
-        # TODO: currently, we are only showing one course detail.
-        serializer = CourseSerializer(course, many=False)
-        return Response(serializer.data)
-    else:
-        return render(request, 'ClassWise/search.html')
-
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 @api_view(['GET', 'POST'])
@@ -122,8 +61,6 @@ def instructor_detail(request, pk, format=None):
         return Response(serializer.data)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 def get_course_info(course_code):
     """returns a json object containing course information
@@ -203,7 +140,7 @@ def get_course_info(course_code):
     l_course_code_title_credit = course_code_title_credit.split(" ") # ["COMP", "302", "r", "e", "s", "t"]
     course_code = ''.join(map(str, l_course_code_title_credit[:2])) # "COMP 302"
     course_title = ' '.join(map(str, l_course_code_title_credit[2:-2])) # "r e s t"
-    if "(" in l_course_code_title_credit[-2][1]:
+    if "(" in l_course_code_title_credit[-2]:
         course_credit = l_course_code_title_credit[-2][1]
     else:
         course_credit = None
@@ -378,6 +315,8 @@ def prepopulate_database(request):
                                             course_name=d_course_info['course_title'], 
                                             course_description=d_course_info['course_description'], 
                                             course_restrictions=d_course_info['course_restriction'], 
+                                            course_prerequisites=d_course_info['course_prerequisites'],
+                                            course_corequisites=d_course_info['course_corequisites'],
                                             course_offering_terms=d_course_info['course_offering_terms'], 
                                             course_previous_grades=d_course_info['course_previous_grades'],
                                             course_credit=d_course_info['course_credit'])
@@ -397,11 +336,4 @@ def prepopulate_database(request):
                         instructor.link = instructor_info["link"]
                 instructor.save()
                 course.course_instructors.add(instructor)
-    
-            # filter course objects that have the same course code
-            prerequisites = Course.objects.filter(course_code__in=d_course_info['course_prerequisites'])
-            corequisites = Course.objects.filter(course_code__in=d_course_info['course_corequisites'])
-
-            course.course_prerequisites.set(prerequisites)
-            course.course_corequisites.set(corequisites)
             course.save()
