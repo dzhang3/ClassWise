@@ -18,7 +18,20 @@ export const GetCourseData = async (courseId) => {
 	}
 };
 
-export const getInstructorInfo = async (instructorId) => {
-	const response = await axios.get(`${API_URL}/instructors/${instructorId}`);
-	return response.data;
+export const getInstructorInfo = async (instructorName) => {
+	try {
+		const authTokens = JSON.parse(localStorage.getItem("authTokens"));
+		const response = await axios.get(
+			`${API_URL}/instructors/${instructorName.toString()}/`,
+			{
+				headers: {
+					Authorization: `Bearer ${authTokens.access}`,
+				},
+			}
+		);
+		console.log(response);
+		return response.data;
+	} catch (err) {
+		console.log(err);
+	}
 };

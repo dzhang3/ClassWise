@@ -8,22 +8,21 @@ import { useEffect, useState } from "react";
 function ClassInfo({ courseData }) {
 	const [courseDescription, setCourseDescription] = useState("");
 	const [courseName, setCourseName] = useState("");
-	const [courseTerms, setCourseTerms] = useState([]);
+	const [courseTerms, setCourseTerms] = useState({});
 	const [courseAverages, setCourseAverages] = useState({});
 	const [courseCredits, setCourseCredits] = useState(0);
 	const [courseId, setCourseId] = useState("");
 	const [coursePrereqs, setCoursePrereqs] = useState([]);
 	const [courseCoreqs, setCourseCoreqs] = useState([]);
 	const [courseRestrictions, setCourseRestrictions] = useState("");
+	const [courseLink, setCourseLink] = useState("");
 
 	useEffect(() => {
 		if (courseData) {
 			setCourseDescription(courseData.course_description);
 			setCourseName(courseData.course_name);
 
-			const termRegex = /(\b(Fall|Winter|Spring|Summer)\s+\d{4}\b)/g;
-			const matches = courseData.course_offering_terms?.match(termRegex);
-			setCourseTerms(matches || []);
+			setCourseTerms(courseData.course_offering_terms);
 
 			if (
 				typeof courseData.course_previous_grades === "string" &&
@@ -75,14 +74,19 @@ function ClassInfo({ courseData }) {
 			}
 
 			setCourseRestrictions(courseData.course_restrictions);
+			setCourseLink(courseData.course_link);
 		}
 	}, [courseData]); // Dependency array with courseData
 
-	console.log(courseCoreqs);
+	console.log();
 
 	// Optionally, render conditionally based on the existence of courseData
 	if (!courseData) {
-		return <div>Loading...</div>;
+		return (
+			<div style={{ marginTop: "30px", width: "100vw" }}>
+				<h2>No course data found.</h2>
+			</div>
+		);
 	}
 
 	return (
@@ -91,6 +95,7 @@ function ClassInfo({ courseData }) {
 				courseName={courseName}
 				courseCredits={courseCredits}
 				courseId={courseId}
+				courseLink={courseLink}
 			/>
 			<CourseDetailsOverview
 				courseDescription={courseDescription}
@@ -99,7 +104,7 @@ function ClassInfo({ courseData }) {
 				courseCoreqs={courseCoreqs}
 				courseRestrictions={courseRestrictions}
 			/>
-			<InstructorInfo />
+			<InstructorInfo courseTerms={courseTerms} />
 			<CourseReviews />
 		</div>
 	);

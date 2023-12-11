@@ -1,16 +1,23 @@
 import TitleHeader from "../components/navigation/title-header.js";
 import { Button } from "@mui/material";
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import useHistory
+import AuthContext from "../contexts/AuthContext";
 
 function SearchPage() {
-	const [value, setValue] = useState("");
+	const { user } = useContext(AuthContext);
 	const navigate = useNavigate(); // Create a navigate object
 
 	const handleLoginClick = () => {
 		// Navigate to /login when the button is clicked
 		navigate("/login");
 	};
+
+	useEffect(() => {
+		if (user) {
+			navigate("/search");
+		}
+	});
 
 	return (
 		<div className="LandingPage">

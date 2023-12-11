@@ -8,8 +8,11 @@ export default function InstructorRMP({
 	rating,
 	difficulty,
 	wouldTakeAgain,
-	tags,
+	link,
 }) {
+	const handleClick = () => {
+		window.open(link);
+	};
 	return (
 		<div className="instructor-rmp">
 			<div className="instructor-rmp__header">
@@ -22,6 +25,7 @@ export default function InstructorRMP({
 				<Button
 					variant="outlined"
 					endIcon={<ChevronRightIcon />}
+					onClick={handleClick}
 					style={{ height: "40px" }}
 				>
 					RATE MY PROFESSOR
@@ -37,9 +41,6 @@ export default function InstructorRMP({
 					marginBottom: "10px",
 				}}
 			/>
-			<div className="chip-container">
-				{tags ? tags.map((tag) => <Chip label={tag} />) : null}
-			</div>
 		</div>
 	);
 }

@@ -242,7 +242,7 @@ def get_instructor_info(name):
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"user-agent={desired_user_agent}")
     chrome_options.add_argument("--disable-popup-blocking")
-    #chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--headless")
     driver = webdriver.Chrome(options=chrome_options)
     # Navigate to the website
     print("processing...")

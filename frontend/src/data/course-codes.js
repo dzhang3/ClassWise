@@ -1,9 +1,5 @@
 export const courses = [
 	{
-		name: "AAAA 100",
-		id: "AAAA100",
-	},
-	{
 		name: "ACCT 351 Intermediate Financial Accounting 1",
 		id: "ACCT351",
 	},

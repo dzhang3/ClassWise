@@ -5,7 +5,14 @@ export default function CourseTitleDetails({
 	courseId,
 	courseName,
 	courseCredits,
+	courseLink,
 }) {
+	const handleClick = () => {
+		// Find the selected course ID
+		if (courseId !== "") {
+			window.open(courseLink);
+		}
+	};
 	return (
 		<section className="course-title-details" style={{ display: "flex" }}>
 			<div className="course-title-details-left">
@@ -26,9 +33,13 @@ export default function CourseTitleDetails({
 					justifyContent: "center",
 				}}
 			>
-				{/* <Button variant="contained" style={{ height: "40px" }}>
-					Add to Schedule +
-				</Button> */}
+				<Button
+					variant="contained"
+					onClick={handleClick}
+					style={{ height: "40px" }}
+				>
+					More Info
+				</Button>
 			</div>
 		</section>
 	);
