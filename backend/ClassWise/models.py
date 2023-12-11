@@ -17,8 +17,9 @@ class Comment(models.Model):
 class Instructor(models.Model):
     instructor_name = models.CharField(max_length=200, blank=False, null=False)
     instructor_rating = models.FloatField(null=True, validators=[MinValueValidator(0.0), MaxValueValidator(5.0)],)
-    would_take_again = models.PositiveIntegerField(null=True, validators=[MinValueValidator(0), MaxValueValidator(100)],)
+    would_take_again = models.CharField(max_length=200, null=True)
     level_of_difficulty = models.FloatField(null=True, validators=[MinValueValidator(0.0), MaxValueValidator(5.0)],)
+    link = models.URLField(null=True)
     def __str__(self):
         return self.instructor_name
 
