@@ -35,6 +35,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Add your frontend URL
 ]
 
+# refer to headers in postman including hidden headers
 CORS_ALLOW_HEADERS = [
     'access-control-allow-origin',
     'access-control-allow-headers',
@@ -45,7 +46,6 @@ CORS_ALLOW_HEADERS = [
 # CORS_ALLOW_ALL_HEADERS = True
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
