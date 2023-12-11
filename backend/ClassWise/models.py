@@ -31,9 +31,10 @@ class Course(models.Model):
     course_prerequisites = models.CharField(max_length=200, null=True)
     course_corequisites = models.CharField(max_length=200, null=True)
     course_restrictions = models.TextField(null=True)
-    course_offering_terms = models.CharField(max_length=200, null=True)
+    course_offering_terms = models.JSONField(null=True)
     course_previous_grades = models.TextField(null=True)
     course_credit = models.PositiveIntegerField(null=True)
+    course_link = models.URLField(null=True)
     def __str__(self):
         return self.course_name
 
