@@ -7,7 +7,7 @@ urlpatterns = [
     path('', views.prepopulate_database, name="home"),
     path('courses/', views.course_list, name="course-list"),
     path('courses/<str:course_code>/', views.course_detail, name="course-detail"),
-    path('instructors/<string:instructor_name>/', views.instructor_detail, name="instructor-detail"),
+    path('instructors/<str:instructor_name>/', views.instructor_detail, name="instructor-detail"),
 ]
 
 # We don't necessarily need to add these extra url patterns in, but it gives us a simple,
