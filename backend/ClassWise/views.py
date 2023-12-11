@@ -3,8 +3,8 @@ import os
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 
-from .models import Course, Instructor
-from .serializers import CourseSerializer, InstructorSerializer
+from .models import Course, Instructor, Comment
+from .serializers import CourseSerializer, InstructorSerializer, CommentSerializer
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
@@ -19,6 +19,53 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 base_dir = settings.BASE_DIR
+
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@api_view(['GET', 'POST'])
+def comment_list(request, course_code, format=None):
+    if request.method == 'GET':
+        # find the course id using the course code
+        course_pk = get_object_or_404(Course, course_code=course_code).pk
+        comments = Comment.objects.all().filter(comment_course_id=course_pk)
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        # find the course id using the course code
+        data = request.data
+        course_pk = get_object_or_404(Course, course_code=request.data['comment_course']).pk
+        data["comment_course"] = course_pk
+        print(data)
+        serializer = CommentSerializer(data=data)
+        if serializer.is_valid():
+            # check if the comment is already in the database
+            if Comment.objects.filter(comment_user=request.user, comment_course_id=course_pk).exists():
+                return Response("You already left a comment for the course.", status=status.HTTP_400_BAD_REQUEST)
+            else:
+                serializer.save(comment_user=request.user, comment_course_id=course_pk, comment_instructor=request.data['comment_instructor'], comment_text=request.data['comment_text'], comment_grade=request.data['comment_grade'], comment_rating=request.data['comment_rating'])
+                print(serializer.data)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@api_view(['GET', 'DELETE', 'PUT'])
+def comment_detail(request, pk, format=None):
+    if request.method == 'GET':
+        comment = get_object_or_404(Comment, pk=pk)
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data)
+    elif request.method == 'DELETE':
+        comment = get_object_or_404(Comment, pk=pk)
+        comment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    elif request.method == 'PUT':
+        comment = get_object_or_404(Comment, pk=pk)
+        serializer = CommentSerializer(comment, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
 
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -56,6 +103,7 @@ def course_detail(request, course_code, format=None):
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def instructor_detail(request, instructor_name, format=None):
+    
     if request.method == 'GET':
         instructor = get_object_or_404(Instructor, instructor_name=instructor_name)
         serializer = InstructorSerializer(instructor)
@@ -242,7 +290,7 @@ def get_instructor_info(name):
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"user-agent={desired_user_agent}")
     chrome_options.add_argument("--disable-popup-blocking")
-    #chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--headless")
     driver = webdriver.Chrome(options=chrome_options)
     # Navigate to the website
     print("processing...")

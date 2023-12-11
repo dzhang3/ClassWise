@@ -7,9 +7,12 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 class Comment(models.Model):
     comment_text = models.CharField(max_length=200, null=True)
     comment_date = models.DateTimeField(auto_now_add=True)
+    # TODO: on_delete?
     comment_user = models.ForeignKey("UserAccount", on_delete=models.CASCADE, null=True)
     comment_course = models.OneToOneField('Course', on_delete=models.CASCADE, null=True)
-    comment_professor = models.OneToOneField('Instructor', on_delete=models.PROTECT)
+    comment_instructor = models.CharField(max_length=200, null=True)
+    comment_grade = models.CharField(max_length=200, null=True)
+    comment_rating = models.SmallIntegerField(null=True, validators=[MinValueValidator(0), MaxValueValidator(5)],)
     # Course and comments are one to many
     def __str__(self):
         return self.comment_text

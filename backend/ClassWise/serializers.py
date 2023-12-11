@@ -1,8 +1,13 @@
 from rest_framework import serializers
-from .models import Course, Instructor
+from .models import Course, Instructor, Comment
 from djoser.serializers import UserCreateSerializer
 from django.contrib.auth import get_user_model
 #from django.contrib.auth.models import User
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields ='__all__'
 
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
