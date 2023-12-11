@@ -321,7 +321,9 @@ def prepopulate_database(request):
                                             course_corequisites=d_course_info['course_corequisites'],
                                             course_offering_terms=d_course_info['course_offering_terms'], 
                                             course_previous_grades=d_course_info['course_previous_grades'],
-                                            course_credit=d_course_info['course_credit'])
+                                            course_credit=d_course_info['course_credit'],
+                                            course_link=d_course_info['course_link']
+                                            )
             # create a new instructor object based on the instructor name
             for instructor_name in d_course_info['instructors']:
                 # check if there already exists an instructor with the same name
