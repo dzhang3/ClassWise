@@ -12,6 +12,9 @@ function ClassInfo({ courseData }) {
 	const [courseAverages, setCourseAverages] = useState({});
 	const [courseCredits, setCourseCredits] = useState(0);
 	const [courseId, setCourseId] = useState("");
+	const [coursePrereqs, setCoursePrereqs] = useState([]);
+	const [courseCoreqs, setCourseCoreqs] = useState([]);
+	const [courseRestrictions, setCourseRestrictions] = useState("");
 
 	useEffect(() => {
 		if (courseData) {
@@ -22,7 +25,10 @@ function ClassInfo({ courseData }) {
 			const matches = courseData.course_offering_terms?.match(termRegex);
 			setCourseTerms(matches || []);
 
-			if (typeof courseData.course_previous_grades === "string") {
+			if (
+				typeof courseData.course_previous_grades === "string" &&
+				courseData.course_previous_grades !== "[]"
+			) {
 				const gradeList = courseData.course_previous_grades
 					.slice(2, -2)
 					.split("', '");
@@ -40,23 +46,39 @@ function ClassInfo({ courseData }) {
 			}
 
 			const creditsRegex = /\((\d+) credits\)|(\d+) credits/;
-			setCourseCredits(
-				CourseNames[courseData.course_code]?.match(creditsRegex)[1] ||
-					CourseNames[courseData.course_code]?.match(
-						creditsRegex
-					)[2] ||
-					null
-			);
+			setCourseCredits(courseData.course_credit);
 
 			setCourseId(
 				courseData.course_code?.slice(0, 4) +
 					" " +
 					courseData.course_code?.slice(4)
 			);
+
+			if (
+				typeof courseData.course_prerequisites === "string" &&
+				courseData.course_prerequisites !== "[]"
+			) {
+				const prereqList = courseData.course_prerequisites
+					.slice(2, -2)
+					.split("', '");
+				setCoursePrereqs(prereqList || []);
+			}
+
+			if (
+				typeof courseData.course_corequisites === "string" &&
+				courseData.course_corequisites !== "[]"
+			) {
+				const coreqList = courseData.course_corequisites
+					.slice(2, -2)
+					.split("', '");
+				setCourseCoreqs(coreqList || []);
+			}
+
+			setCourseRestrictions(courseData.course_restrictions);
 		}
 	}, [courseData]); // Dependency array with courseData
 
-	console.log(courseAverages);
+	console.log(courseCoreqs);
 
 	// Optionally, render conditionally based on the existence of courseData
 	if (!courseData) {
@@ -73,6 +95,9 @@ function ClassInfo({ courseData }) {
 			<CourseDetailsOverview
 				courseDescription={courseDescription}
 				courseAverages={courseAverages}
+				coursePrereqs={coursePrereqs}
+				courseCoreqs={courseCoreqs}
+				courseRestrictions={courseRestrictions}
 			/>
 			<InstructorInfo />
 			<CourseReviews />

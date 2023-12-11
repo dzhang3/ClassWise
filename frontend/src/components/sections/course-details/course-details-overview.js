@@ -6,6 +6,9 @@ import Notes from "./Notes";
 export default function CourseDetailsOverview({
 	courseDescription,
 	courseAverages,
+	coursePrereqs,
+	courseCoreqs,
+	courseRestrictions,
 }) {
 	return (
 		<div className="class-details">
@@ -18,9 +21,11 @@ export default function CourseDetailsOverview({
 				<Averages courseAverages={courseAverages} />
 			</div>
 			<div className="class-info-half">
-				<Prerequisites />
-				<Restrictions />
-				<Notes />
+				<Prerequisites
+					coursePrereqs={coursePrereqs}
+					courseCoreqs={courseCoreqs}
+				/>
+				<Restrictions courseRestrictions={courseRestrictions} />
 			</div>
 		</div>
 	);

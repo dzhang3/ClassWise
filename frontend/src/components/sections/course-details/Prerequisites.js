@@ -1,6 +1,7 @@
 import Chip from "@mui/material/Chip";
 
-function Prerequisites() {
+function Prerequisites({ coursePrereqs, courseCoreqs }) {
+	console.log(courseCoreqs);
 	return (
 		<div className="course-details__prerequisites">
 			<h4
@@ -11,12 +12,36 @@ function Prerequisites() {
 				Prerequisite(s)
 			</h4>
 			<div className="chip-container">
-				<Chip label="MATH 323" />
-				<Chip label="ECSE 205" />
-				<Chip label="MATH 133" />
-				<Chip label="MATH 222" />
-				<Chip label="COMP 202" />
+				{coursePrereqs ? (
+					coursePrereqs.map((prereq) => {
+						return prereq ? <Chip label={prereq} /> : <></>;
+					})
+				) : (
+					<></>
+				)}
 			</div>
+			{courseCoreqs.length > 0 ? (
+				<div>
+					<h4
+						style={{
+							marginTop: "0px",
+						}}
+					>
+						Corequisite(s)
+					</h4>
+					<div className="chip-container">
+						{courseCoreqs ? (
+							courseCoreqs.map((coreq) => {
+								return coreq ? <Chip label={coreq} /> : <></>;
+							})
+						) : (
+							<></>
+						)}
+					</div>
+				</div>
+			) : (
+				<></>
+			)}
 		</div>
 	);
 }

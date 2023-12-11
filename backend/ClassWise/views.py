@@ -16,6 +16,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 base_dir = settings.BASE_DIR
 
@@ -269,13 +270,15 @@ def get_instructor_info(name):
     search_input_e = search_input_e.find_element(By.CLASS_NAME, "Search__DebouncedSearchInput-sc-10lefvq-1")
     search_input_e.send_keys(name)
     search_input_e.send_keys(Keys.RETURN)
-    print("found instructor")
-    input("Press Enter to continue...")
+    print("found instructor", name)
+    WebDriverWait(driver, 5)
+    # input("Press Enter to continue...")
     # check if the instructor is found
     try:
         # get the first instructor if multiple show up
+        element = WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.CLASS_NAME, "TeacherCard__StyledTeacherCard-syjs0d-0")))
         instructor_e = driver.find_elements(By.CLASS_NAME, "TeacherCard__StyledTeacherCard-syjs0d-0")[0]
-        print("instructor page found")
+        print("instructor page found", name)
         # get href value from a tag element
         link = instructor_e.get_attribute("href")
         rating= instructor_e.find_element(By.CLASS_NAME, "CardNumRating__CardNumRatingNumber-sc-17t4b9u-2").text
