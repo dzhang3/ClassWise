@@ -9,7 +9,7 @@ urlpatterns = [
     path('', views.prepopulate_database, name="home"),
     #path('class/<str:course_code>/', views.home, name="course-search"),
     path('courses/', views.course_list, name="course-list"),
-    path('courses/<int:pk>/', views.course_detail, name="course-detail"),
+    path('courses/<str:course_code>/', views.course_detail, name="course-detail"),
     path('test/', views.test_view, name="test"),
     ]
 

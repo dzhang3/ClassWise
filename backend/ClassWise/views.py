@@ -97,15 +97,11 @@ def home(request):
         for instructor_name in d_course_info['instructors']:
             # check if there already exists an instructor with the same name
             if Instructor.objects.filter(instructor_name=instructor_name).exists():
-                instructor = Instructor.objects.get(instructor_name=instructor_name)
-                instructor_info = get_instructor_info(instructor_name)
-                if instructor_info != -1:
-                    instructor.instructor_rating = instructor_info["instructor_rating"]
-                    instructor.would_take_again = instructor_info["would_take_again"]
-                    instructor.level_of_difficulty = instructor_info["level_of_difficulty"]
+                continue
             # if not, create a new instructor object based on the instructor name
             else:
                 instructor = Instructor.objects.create(instructor_name=instructor_name)
+                instructor_info = get_instructor_info(instructor_name)
                 if instructor_info != -1:
                     instructor.instructor_rating = instructor_info["instructor_rating"]
                     instructor.would_take_again = instructor_info["would_take_again"]
@@ -149,10 +145,10 @@ def course_list(request, format=None):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
-def course_detail(request, pk, format=None):
+def course_detail(request, course_code, format=None):
     if request.method == 'GET':
-        # find the course object with the pk
-        course = get_object_or_404(Course, pk=pk)
+        # find the course object with the course_code
+        course = get_object_or_404(Course, course_code=course_code)
         serializer = CourseSerializer(course)
         return Response(serializer.data)
     else:
@@ -238,7 +234,7 @@ def get_course_info(course_code):
     # Find the course title by ID
     course_code_title_credit = driver.find_element(By.ID, "page-title").text.strip()
     l_course_code_title_credit = course_code_title_credit.split(" ") # ["COMP", "302", "r", "e", "s", "t"]
-    course_code = ' '.join(map(str, l_course_code_title_credit[:2])) # "COMP 302"
+    course_code = ''.join(map(str, l_course_code_title_credit[:2])) # "COMP 302"
     course_title = ' '.join(map(str, l_course_code_title_credit[2:-2])) # "r e s t"
     if "(" in l_course_code_title_credit[-2][1]:
         course_credit = l_course_code_title_credit[-2][1]
@@ -397,11 +393,9 @@ def prepopulate_database(request):
     # iterate through the json file to get course code
     for course in data:
         course_code = data[course]
-        # course_code is currently COMP302 and has to be reformatted to COMP 302 for db
-        course_code_db = ' '.join(map(str, [course_code[:4], course_code[4:]]))
         # check if there already exists a course with the same course code
         # if so, do nothing
-        if Course.objects.filter(course_code=course_code_db).exists():
+        if Course.objects.filter(course_code=course_code).exists():
             print("skipping ", course_code)
             continue
         # if not, create a new course object based on the course code
