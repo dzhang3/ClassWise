@@ -54,8 +54,8 @@ function LoginComponent() {
 				>
 					<TextField
 						variant="standard"
-						type="username"
-						label="Username"
+						type="email"
+						label="Email"
 						onChange={(e) => setEmail(e.target.value)}
 						value={email}
 					/>
