@@ -1,10 +1,9 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8000";
+const API_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 export const GetCourseData = async (courseId) => {
 	try {
-		console.log(`${API_URL}/courses/${courseId}/`);
 		const authTokens = JSON.parse(localStorage.getItem("authTokens"));
 		const response = await axios.get(`${API_URL}/courses/${courseId}/`, {
 			headers: {
@@ -29,7 +28,6 @@ export const getInstructorInfo = async (instructorName) => {
 				},
 			}
 		);
-		console.log(response);
 		return response.data;
 	} catch (err) {
 		console.log(err);
@@ -44,7 +42,6 @@ export const getReviews = async (courseId) => {
 				Authorization: `Bearer ${authTokens.access}`,
 			},
 		});
-		console.log(response);
 		return response.data;
 	} catch (err) {
 		console.log(err);
@@ -63,7 +60,6 @@ export const postReview = async (courseId, review) => {
 				},
 			}
 		);
-		console.log(response);
 		return response.data;
 	} catch (err) {
 		console.log(err);

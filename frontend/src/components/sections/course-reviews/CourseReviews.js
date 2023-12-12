@@ -14,7 +14,16 @@ export default function CourseReviews({ courseId }) {
 
 	useEffect(() => {
 		getReviews(courseId.split(" ").join("")).then((apiReviews) => {
+			if (!Array.isArray(apiReviews)) {
+				console.error(
+					"Expected apiReviews to be an array, got:",
+					typeof apiReviews
+				);
+				return; // Exit if apiReviews is not an array
+			}
+
 			let userId = user.user_id;
+			console.log("apiReviews is", typeof apiReviews, apiReviews); // Fixed the typo in console.log
 			let allReviews = apiReviews?.map((review) => ({
 				id: review.id,
 				isMine: review.comment_user === userId,
@@ -24,53 +33,52 @@ export default function CourseReviews({ courseId }) {
 				grade: review.comment_grade,
 				comment: review.comment_text,
 			}));
-			const userHasReview = allReviews?.some((review) => review.isMine);
+			const userHasReview = allReviews.some((review) => review.isMine);
 			setHaveReview(userHasReview);
 
 			setReviews(allReviews); // Set allReviews
 		});
-	}, [courseId, user.user_id]); // Added user.user_id as a dependency
-
+	}, [courseId, user.user_id]); // Dependencies
+	console.log(reviews);
 	return (
 		<div className="course-reviews">
 			<h3>Reviews</h3>
 			<CreateReview courseId={courseId} haveReview={haveReview} />
 			<div className="reviews">
-				{reviews &&
-					reviews.map((review) =>
-						!review.isMine ? (
-							<Review
-								id={review.id} // key added
-								name={review.professor}
-								date={review.date}
-								rating={review.rating}
-								grade={review.grade}
-								comment={review.comment}
-							/>
-						) : !isEditing ? (
-							<MyReview
-								id={review.id} // key added
-								setIsEditing={setIsEditing}
-								name={review.professor}
-								date={review.date}
-								rating={review.rating}
-								grade={review.grade}
-								comment={review.comment}
-							/>
-						) : (
-							<EditReview
-								id={review.id} // key added
-								setIsEditing={setIsEditing}
-								name={review.professor}
-								date={review.date}
-								rating={review.rating}
-								grade={review.grade}
-								comment={review.comment}
-								setReviews={setReviews}
-								reviews={reviews}
-							/>
-						)
-					)}
+				{reviews.map((review) =>
+					!review.isMine ? (
+						<Review
+							id={review.id} // Correctly placed key
+							name={review.professor}
+							date={review.date}
+							rating={review.rating}
+							grade={review.grade}
+							comment={review.comment}
+						/>
+					) : !isEditing ? (
+						<MyReview
+							id={review.id} // Correctly placed key
+							setIsEditing={setIsEditing}
+							name={review.professor}
+							date={review.date}
+							rating={review.rating}
+							grade={review.grade}
+							comment={review.comment}
+						/>
+					) : (
+						<EditReview
+							id={review.id} // Correctly placed key
+							setIsEditing={setIsEditing}
+							name={review.professor}
+							date={review.date}
+							rating={review.rating}
+							grade={review.grade}
+							comment={review.comment}
+							setReviews={setReviews}
+							reviews={reviews}
+						/>
+					)
+				)}
 			</div>
 		</div>
 	);
