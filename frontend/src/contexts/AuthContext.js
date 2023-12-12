@@ -6,7 +6,7 @@ const AuthContext = createContext();
 
 export default AuthContext;
 
-const API_URL = process.env.BACKEND_URL || "http://localhost:8000";
+const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 
 export const AuthProvider = ({ children }) => {
 	const navigate = useNavigate();
