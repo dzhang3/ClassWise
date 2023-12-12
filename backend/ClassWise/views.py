@@ -20,6 +20,9 @@ from selenium.webdriver.support import expected_conditions as EC
 
 base_dir = settings.BASE_DIR
 
+def home(request):
+    return render(request, 'index.html')
+
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 @api_view(['GET', 'POST'])

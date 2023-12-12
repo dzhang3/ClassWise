@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8000";
+const API_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 export const GetCourseData = async (courseId) => {
 	try {
@@ -52,6 +52,12 @@ export const getReviews = async (courseId) => {
 };
 
 export const postReview = async (courseId, review) => {
+	console.log(
+		"postReview called with courseId:",
+		courseId,
+		"and review:",
+		review
+	);
 	try {
 		const authTokens = JSON.parse(localStorage.getItem("authTokens"));
 		const response = await axios.post(
@@ -71,6 +77,7 @@ export const postReview = async (courseId, review) => {
 };
 
 export const deleteReview = async (reviewId) => {
+	console.log("deleteReview called with reviewId:", reviewId);
 	try {
 		const authTokens = JSON.parse(localStorage.getItem("authTokens"));
 		const response = await axios.delete(
@@ -89,6 +96,13 @@ export const deleteReview = async (reviewId) => {
 };
 
 export const editReview = async (reviewId, review) => {
+	console.log(
+		"editReview called with reviewId:",
+		reviewId,
+		"and review:",
+		review
+	);
+
 	try {
 		const authTokens = JSON.parse(localStorage.getItem("authTokens"));
 		const response = await axios.put(

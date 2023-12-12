@@ -1,13 +1,23 @@
 import Rating from "@mui/material/Rating";
 import Button from "@mui/material/Button";
+import { useEffect } from "react";
 
 export default function Review(props) {
-	const { setIsEditing, name, date, rating, grade, comment } = props;
+	const { setIsEditing, name, date, rating, grade, comment, reviews } = props;
 
 	const handleClick = () => {
 		setIsEditing(true);
 	};
 
+	useEffect(() => {
+		console.log("MyReview props updated:", {
+			name,
+			date,
+			rating,
+			grade,
+			comment,
+		});
+	}, [name, date, rating, grade, comment]);
 	return (
 		<div className="review">
 			<div className="review-header">

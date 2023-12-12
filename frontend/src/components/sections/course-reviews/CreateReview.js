@@ -3,13 +3,20 @@ import { useState } from "react";
 import { TextField } from "@mui/material";
 import { postReview } from "../../../services";
 
-export default function CreateReview({ courseId, haveReview }) {
+export default function CreateReview({
+	courseId,
+	haveReview,
+	setHaveReview,
+	setReviews,
+	reviews,
+}) {
 	const [rating, setRating] = useState(0);
 	const [professor, setProfessor] = useState("");
 	const [comment, setComment] = useState("");
 	const [grade, setGrade] = useState("");
 
 	const handleSubmit = (e) => {
+		e.preventDefault();
 		if (!haveReview) {
 			courseId = courseId.split(" ").join("");
 			const review = {
@@ -20,6 +27,8 @@ export default function CreateReview({ courseId, haveReview }) {
 				comment_grade: grade,
 			};
 			postReview(courseId, review);
+			setReviews([review, ...reviews]);
+			window.location.reload();
 		} else {
 			e.preventDefault();
 			alert("You already have a review for this course.");

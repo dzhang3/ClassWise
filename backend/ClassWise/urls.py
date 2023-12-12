@@ -4,7 +4,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 
 urlpatterns = [
-    path('', views.prepopulate_database, name="home"),
+    path('', views.home, name="home"),
     path('courses/', views.course_list, name="course-list"),
     path('courses/<str:course_code>/', views.course_detail, name="course-detail"),
     path('instructors/<str:instructor_name>/', views.instructor_detail, name="instructor-detail"),

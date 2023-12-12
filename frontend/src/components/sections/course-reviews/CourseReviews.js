@@ -13,6 +13,8 @@ export default function CourseReviews({ courseId }) {
 	const { user } = useContext(AuthContext);
 
 	useEffect(() => {
+		console.log(courseId, courseId.split(" ").join(""), "courseid");
+		if (!courseId) return;
 		getReviews(courseId.split(" ").join("")).then((apiReviews) => {
 			let userId = user.user_id;
 			let allReviews = apiReviews?.map((review) => ({
@@ -31,10 +33,20 @@ export default function CourseReviews({ courseId }) {
 		});
 	}, [courseId, user.user_id]); // Added user.user_id as a dependency
 
+	useEffect(() => {
+		console.log("Reviews updated in parent:", reviews);
+	}, [reviews]);
+
 	return (
 		<div className="course-reviews">
 			<h3>Reviews</h3>
-			<CreateReview courseId={courseId} haveReview={haveReview} />
+			<CreateReview
+				courseId={courseId}
+				haveReview={haveReview}
+				reviews={reviews}
+				setReviews={setReviews}
+				setHaveReview={setHaveReview}
+			/>
 			<div className="reviews">
 				{reviews &&
 					reviews.map((review) =>
@@ -46,6 +58,7 @@ export default function CourseReviews({ courseId }) {
 								rating={review.rating}
 								grade={review.grade}
 								comment={review.comment}
+								reviews={reviews}
 							/>
 						) : !isEditing ? (
 							<MyReview
@@ -56,6 +69,7 @@ export default function CourseReviews({ courseId }) {
 								rating={review.rating}
 								grade={review.grade}
 								comment={review.comment}
+								reviews={reviews}
 							/>
 						) : (
 							<EditReview
@@ -68,6 +82,9 @@ export default function CourseReviews({ courseId }) {
 								comment={review.comment}
 								setReviews={setReviews}
 								reviews={reviews}
+								review={review}
+								haveReview={haveReview}
+								setHaveReview={setHaveReview}
 							/>
 						)
 					)}

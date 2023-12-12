@@ -17,6 +17,8 @@ export default function EditReview(props) {
 		comment,
 		setReviews,
 		reviews,
+		setHaveReview,
+		haveReview,
 	} = props;
 	const [newRating, setRating] = useState(rating);
 	const [newProfessor, setProfessor] = useState(name);
@@ -28,19 +30,27 @@ export default function EditReview(props) {
 	};
 	const handleDelete = () => {
 		deleteReview(id).then(() => {
-			window.location.reload();
+			const updatedReviews = reviews.filter((review) => review.id !== id);
+			setReviews(updatedReviews);
+			setHaveReview(false);
 		});
 	};
+
 	const handleEdit = () => {
-		const review = {
+		const updatedReview = {
 			comment_text: newComment,
 			comment_instructor: newProfessor,
 			comment_rating: newRating,
 			comment_grade: newGrade,
 		};
-		editReview(id, review)
+		editReview(id, updatedReview)
 			.then(() => {
+				console.log(reviews);
+				const updatedReviews = reviews.map((review) =>
+					review.id === id ? { ...review, ...updatedReview } : review
+				);
 				setIsEditing(false);
+				setReviews(updatedReviews);
 				window.location.reload();
 			})
 			.catch((error) => {

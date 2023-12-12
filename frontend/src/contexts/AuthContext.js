@@ -6,6 +6,8 @@ const AuthContext = createContext();
 
 export default AuthContext;
 
+const API_URL = process.env.BACKEND_URL || "http://localhost:8000";
+
 export const AuthProvider = ({ children }) => {
 	const navigate = useNavigate();
 
@@ -21,7 +23,7 @@ export const AuthProvider = ({ children }) => {
 	);
 
 	const createUser = async (userData) => {
-		const response = await fetch("http://localhost:8000/auth/users/", {
+		const response = await fetch(`${API_URL}/auth/users/`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -49,7 +51,7 @@ export const AuthProvider = ({ children }) => {
 	};
 
 	const loginUser = async (userData) => {
-		const response = await fetch("http://localhost:8000/auth/jwt/create/", {
+		const response = await fetch(`${API_URL}/auth/jwt/create/`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -67,8 +69,6 @@ export const AuthProvider = ({ children }) => {
 			localStorage.setItem("authTokens", JSON.stringify(data));
 			navigate("/search");
 		} else {
-			console.log(response);
-			console.log(data);
 			alert("something wrong");
 		}
 	};
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }) => {
 
 	const updateToken = async () => {
 		console.log("Updating token");
-		let response = await fetch("http://localhost:8000/auth/jwt/refresh", {
+		let response = await fetch(`${API_URL}/auth/jwt/refresh`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -94,12 +94,10 @@ export const AuthProvider = ({ children }) => {
 
 		if (response.status === 200) {
 			const data = await response.json();
-			console.log(data);
 			setAuthTokens((prevAuthTokens) => ({
 				...prevAuthTokens,
 				access: data.access,
 			}));
-			console.log(authTokens);
 			setUser(jwtDecode(data.access));
 			localStorage.setItem("authTokens", JSON.stringify(authTokens));
 		} else {
