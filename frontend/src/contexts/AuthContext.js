@@ -6,8 +6,6 @@ const AuthContext = createContext();
 
 export default AuthContext;
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
-
 export const AuthProvider = ({ children }) => {
 	const navigate = useNavigate();
 
@@ -23,7 +21,7 @@ export const AuthProvider = ({ children }) => {
 	);
 
 	const createUser = async (userData) => {
-		const response = await fetch(`${API_URL}/auth/users/`, {
+		const response = await fetch(`/auth/users/`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -51,7 +49,7 @@ export const AuthProvider = ({ children }) => {
 	};
 
 	const loginUser = async (userData) => {
-		const response = await fetch(`${API_URL}/auth/jwt/create/`, {
+		const response = await fetch(`/auth/jwt/create/`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -82,7 +80,7 @@ export const AuthProvider = ({ children }) => {
 
 	const updateToken = async () => {
 		console.log("Updating token");
-		let response = await fetch(`${API_URL}/auth/jwt/refresh`, {
+		let response = await fetch(`/auth/jwt/refresh`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
