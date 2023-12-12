@@ -33,7 +33,7 @@ ALLOWED_HOSTS = ["*.us-east-2.elasticbeanstalk.com", "localhost", "classwise-97f
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Add your frontend URL
-    "http://classwise-97f745bcadbb.herokuapp.com"
+    "https://classwise-97f745bcadbb.herokuapp.com"
 ]
 
 # refer to headers in postman including hidden headers
