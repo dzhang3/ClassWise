@@ -48,6 +48,7 @@ def comment_list(request, course_code, format=None):
                 serializer.save(comment_user=request.user, comment_course_id=course_pk, comment_instructor=request.data['comment_instructor'], comment_text=request.data['comment_text'], comment_grade=request.data['comment_grade'], comment_rating=request.data['comment_rating'])
                 print(serializer.data)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @authentication_classes([TokenAuthentication])
