@@ -11,9 +11,7 @@ function ClassPage() {
 	const { id } = useParams();
 	useEffect(() => {
 		const courseData = GetCourseData(id);
-		console.log(courseData);
 		courseData.then((data) => {
-			console.log(data);
 			setCourseData(data);
 		});
 	}, []);

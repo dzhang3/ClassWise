@@ -2,7 +2,6 @@ import axios from "axios";
 
 export const GetCourseData = async (courseId) => {
 	try {
-		console.log(`/courses/${courseId}/`);
 		const authTokens = JSON.parse(localStorage.getItem("authTokens"));
 		const response = await axios.get(`/courses/${courseId}/`, {
 			headers: {
@@ -27,7 +26,6 @@ export const getInstructorInfo = async (instructorName) => {
 				},
 			}
 		);
-		console.log(response);
 		return response.data;
 	} catch (err) {
 		console.log(err);
@@ -42,7 +40,6 @@ export const getReviews = async (courseId) => {
 				Authorization: `Bearer ${authTokens.access}`,
 			},
 		});
-		console.log(response);
 		return response.data;
 	} catch (err) {
 		console.log(err);
@@ -50,12 +47,6 @@ export const getReviews = async (courseId) => {
 };
 
 export const postReview = async (courseId, review) => {
-	console.log(
-		"postReview called with courseId:",
-		courseId,
-		"and review:",
-		review
-	);
 	try {
 		const authTokens = JSON.parse(localStorage.getItem("authTokens"));
 		const response = await axios.post(`/comments/${courseId}/`, review, {
@@ -63,7 +54,6 @@ export const postReview = async (courseId, review) => {
 				Authorization: `Bearer ${authTokens.access}`,
 			},
 		});
-		console.log(response);
 		return response.data;
 	} catch (err) {
 		console.log(err);
@@ -71,7 +61,6 @@ export const postReview = async (courseId, review) => {
 };
 
 export const deleteReview = async (reviewId) => {
-	console.log("deleteReview called with reviewId:", reviewId);
 	try {
 		const authTokens = JSON.parse(localStorage.getItem("authTokens"));
 		const response = await axios.delete(`/editcomments/${reviewId}/`, {
@@ -79,7 +68,6 @@ export const deleteReview = async (reviewId) => {
 				Authorization: `Bearer ${authTokens.access}`,
 			},
 		});
-		console.log(response);
 		return response.data;
 	} catch (err) {
 		console.log(err);
@@ -87,13 +75,6 @@ export const deleteReview = async (reviewId) => {
 };
 
 export const editReview = async (reviewId, review) => {
-	console.log(
-		"editReview called with reviewId:",
-		reviewId,
-		"and review:",
-		review
-	);
-
 	try {
 		const authTokens = JSON.parse(localStorage.getItem("authTokens"));
 		const response = await axios.put(`/editcomments/${reviewId}/`, review, {
@@ -101,7 +82,7 @@ export const editReview = async (reviewId, review) => {
 				Authorization: `Bearer ${authTokens.access}`,
 			},
 		});
-		console.log(response);
+
 		return response.data;
 	} catch (err) {
 		console.log(err);

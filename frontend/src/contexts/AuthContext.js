@@ -79,7 +79,6 @@ export const AuthProvider = ({ children }) => {
 	};
 
 	const updateToken = async () => {
-		console.log("Updating token");
 		let response = await fetch(`/auth/jwt/refresh`, {
 			method: "POST",
 			headers: {

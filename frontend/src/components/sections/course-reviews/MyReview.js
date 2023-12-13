@@ -9,15 +9,15 @@ export default function Review(props) {
 		setIsEditing(true);
 	};
 
-	useEffect(() => {
-		console.log("MyReview props updated:", {
-			name,
-			date,
-			rating,
-			grade,
-			comment,
-		});
-	}, [name, date, rating, grade, comment]);
+	// useEffect(() => {
+	// 	console.log("MyReview props updated:", {
+	// 		name,
+	// 		date,
+	// 		rating,
+	// 		grade,
+	// 		comment,
+	// 	});
+	// }, [name, date, rating, grade, comment]);
 	return (
 		<div className="review">
 			<div className="review-header">

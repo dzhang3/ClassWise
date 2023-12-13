@@ -10,10 +10,6 @@ export default function InstructorSemester({ semester, profs }) {
 
 		// Wait for all promises to resolve
 		Promise.all(promises).then((profsData) => {
-			console.log(profsData.length);
-			profsData.forEach((prof) => {
-				console.log("-------", prof);
-			});
 			setProfessors(profsData);
 		});
 	}, []);

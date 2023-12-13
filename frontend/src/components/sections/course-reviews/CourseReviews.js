@@ -13,7 +13,6 @@ export default function CourseReviews({ courseId }) {
 	const { user } = useContext(AuthContext);
 
 	useEffect(() => {
-		console.log(courseId, courseId.split(" ").join(""), "courseid");
 		if (!courseId) return;
 		getReviews(courseId.split(" ").join("")).then((apiReviews) => {
 			let userId = user.user_id;
@@ -34,7 +33,7 @@ export default function CourseReviews({ courseId }) {
 	}, [courseId, user.user_id]); // Added user.user_id as a dependency
 
 	useEffect(() => {
-		console.log("Reviews updated in parent:", reviews);
+		// console.log("Reviews updated in parent:", reviews);
 	}, [reviews]);
 
 	return (

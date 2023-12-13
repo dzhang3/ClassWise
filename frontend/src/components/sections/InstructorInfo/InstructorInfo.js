@@ -1,8 +1,6 @@
 import InstructorSemester from "./InstructorSemester";
 
 export default function InstructorInfo({ courseTerms }) {
-	console.log(courseTerms);
-
 	// Check if courseTerms is not null/undefined and has keys
 	const hasCourseTerms = courseTerms && Object.keys(courseTerms).length > 0;
 
