@@ -26,9 +26,9 @@ export default function CreateReview({
 				comment_rating: rating,
 				comment_grade: grade,
 			};
-			postReview(courseId, review);
+			postReview(courseId, review).then(window.location.reload());
 			setReviews([review, ...reviews]);
-			window.location.reload();
+			// window.location.reload();
 		} else {
 			e.preventDefault();
 			alert("You already have a review for this course.");
