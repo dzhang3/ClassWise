@@ -78,8 +78,6 @@ function ClassInfo({ courseData }) {
 		}
 	}, [courseData]); // Dependency array with courseData
 
-	console.log();
-
 	// Optionally, render conditionally based on the existence of courseData
 	if (!courseData) {
 		return (

@@ -66,7 +66,6 @@ function RegisterComponent() {
 
 		createUser(userData);
 		// Continue with form submission logic
-		console.log("Form submitted");
 	}
 
 	return (
