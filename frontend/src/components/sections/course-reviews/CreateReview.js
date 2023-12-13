@@ -26,7 +26,11 @@ export default function CreateReview({
 				comment_rating: rating,
 				comment_grade: grade,
 			};
-			postReview(courseId, review).then(window.location.reload());
+			postReview(courseId, review).then(
+				setTimeout(() => {
+					window.location.reload();
+				}, 500)
+			);
 			// setReviews([review, ...reviews]);
 			// window.location.reload();
 		} else {
