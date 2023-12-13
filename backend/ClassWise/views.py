@@ -36,19 +36,27 @@ def comment_list(request, course_code, format=None):
     elif request.method == 'POST':
         # find the course id using the course code
         data = request.data
-        course_pk = get_object_or_404(Course, course_code=request.data['comment_course']).pk
+        course_pk = get_object_or_404(Course, course_code=data['comment_course']).pk
         data["comment_course"] = course_pk
         print(data)
         serializer = CommentSerializer(data=data)
+
         if serializer.is_valid():
-            # check if the comment is already in the database
-            if Comment.objects.filter(comment_user=request.user, comment_course_id=course_pk).exists():
-                return Response("You already left a comment for the course.", status=status.HTTP_400_BAD_REQUEST)
-            else:
-                serializer.save(comment_user=request.user, comment_course_id=course_pk, comment_instructor=request.data['comment_instructor'], comment_text=request.data['comment_text'], comment_grade=request.data['comment_grade'], comment_rating=request.data['comment_rating'])
-                print(serializer.data)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # Save the comment with the additional data
+            serializer.save(
+                comment_user=request.user, 
+                comment_course_id=course_pk,
+                comment_instructor=data['comment_instructor'],
+                comment_text=data['comment_text'],
+                comment_grade=data['comment_grade'],
+                comment_rating=data['comment_rating']
+            )
+            print(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])

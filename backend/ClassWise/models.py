@@ -8,7 +8,7 @@ class Comment(models.Model):
     comment_text = models.CharField(max_length=200, null=True)
     comment_date = models.DateTimeField(auto_now_add=True)
     comment_user = models.ForeignKey("UserAccount", on_delete=models.CASCADE, null=True)
-    comment_course = models.OneToOneField('Course', on_delete=models.CASCADE, null=True)
+    comment_course = models.ForeignKey('Course', on_delete=models.CASCADE, null=True)
     comment_instructor = models.CharField(max_length=200, null=True)
     comment_grade = models.CharField(max_length=200, null=True)
     comment_rating = models.SmallIntegerField(null=True, validators=[MinValueValidator(0), MaxValueValidator(5)],)
